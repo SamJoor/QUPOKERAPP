@@ -1,0 +1,75 @@
+{
+  "expo": {
+    "name": "QU Poker",
+    "slug": "qu-poker",
+    "scheme": "qupoker",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "dark",
+    "splash": {
+      "image": "./assets/splash.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#041126"
+    },
+    "ios": {
+      "supportsTablet": false,
+      "bundleIdentifier": "com.qupoker.strategyclub",
+      "associatedDomains": [
+        "applinks:qupoker.app",
+        "applinks:qupoker.app"
+      ],
+      "infoPlist": {
+        "NSCameraUsageDescription": "Camera access is used to scan club event QR codes for attendance check-in.",
+        "NSPhotoLibraryUsageDescription": "Photo library access is used only when you choose a profile photo.",
+        "ITSAppUsesNonExemptEncryption": false
+      }
+    },
+    "android": {
+      "package": "com.qupoker.strategyclub",
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#041126"
+      },
+      "permissions": [
+        "android.permission.CAMERA",
+        "android.permission.RECORD_AUDIO"
+      ]
+    },
+    "plugins": [
+      "expo-router",
+      "expo-secure-store",
+      [
+        "expo-splash-screen",
+        {
+          "image": "./assets/splash.png",
+          "resizeMode": "contain",
+          "backgroundColor": "#041126"
+        }
+      ],
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "Camera access is used to scan club event QR codes for attendance check-in."
+        }
+      ],
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "Photo library access is used only when you choose a profile photo."
+        }
+      ]
+    ],
+    "extra": {
+      "supportUrl": "https://qupoker.app/support",
+      "privacyPolicyUrl": "https://qupoker.app/privacy",
+      "router": {
+        "origin": false
+      },
+      "eas": {
+        "projectId": "ff295137-2a7d-4561-a7f5-29c2ee3486fa"
+      }
+    },
+    "owner": "jamjamjam09"
+  }
+}
