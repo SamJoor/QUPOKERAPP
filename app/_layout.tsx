@@ -2,28 +2,22 @@ import { Stack } from "expo-router";
 import { PaperProvider } from "react-native-paper";
 import { StatusBar } from "expo-status-bar";
 import {
-  BarlowCondensed_600SemiBold,
-  BarlowCondensed_700Bold
-} from "@expo-google-fonts/barlow-condensed";
-import {
-  Sora_400Regular,
-  Sora_500Medium,
-  Sora_600SemiBold,
-  Sora_700Bold,
-  Sora_800ExtraBold,
+  Barlow_400Regular,
+  Barlow_500Medium,
+  Barlow_600SemiBold,
+  Barlow_700Bold,
+  Barlow_800ExtraBold,
   useFonts
-} from "@expo-google-fonts/sora";
+} from "@expo-google-fonts/barlow";
 import { theme } from "@/constants/theme";
 
 export default function RootLayout() {
   const [fontsLoaded] = useFonts({
-    BarlowCondensed_600SemiBold,
-    BarlowCondensed_700Bold,
-    Sora_400Regular,
-    Sora_500Medium,
-    Sora_600SemiBold,
-    Sora_700Bold,
-    Sora_800ExtraBold
+    Barlow_400Regular,
+    Barlow_500Medium,
+    Barlow_600SemiBold,
+    Barlow_700Bold,
+    Barlow_800ExtraBold
   });
 
   if (!fontsLoaded) {

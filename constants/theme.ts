@@ -19,13 +19,13 @@ export const colors = {
 };
 
 export const fonts = {
-  heading: "BarlowCondensed_700Bold",
-  headingSemibold: "BarlowCondensed_600SemiBold",
-  regular: "Sora_400Regular",
-  medium: "Sora_500Medium",
-  semibold: "Sora_600SemiBold",
-  bold: "Sora_700Bold",
-  extraBold: "Sora_800ExtraBold"
+  heading: "Barlow_800ExtraBold",
+  headingSemibold: "Barlow_700Bold",
+  regular: "Barlow_400Regular",
+  medium: "Barlow_500Medium",
+  semibold: "Barlow_600SemiBold",
+  bold: "Barlow_700Bold",
+  extraBold: "Barlow_800ExtraBold"
 };
 
 const fontConfig = {
