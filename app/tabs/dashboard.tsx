@@ -4,12 +4,12 @@ import { useFocusEffect } from "@react-navigation/native";
 import { router } from "expo-router";
 import { Text } from "react-native-paper";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
-import { AppButton } from "@/components/AppButton";
+import { ClubPass } from "@/components/ClubPass";
 import { EventCard } from "@/components/EventCard";
 import { LeaderboardRow } from "@/components/LeaderboardRow";
+import { QuestCard } from "@/components/QuestCard";
 import { ScreenContainer } from "@/components/ScreenContainer";
 import { SectionHeader } from "@/components/SectionHeader";
-import { StatCard } from "@/components/StatCard";
 import { EmptyState, LoadingState } from "@/components/StateViews";
 import { colors, disclaimer } from "@/constants/theme";
 import { getCurrentProfile } from "@/lib/auth";
@@ -17,34 +17,6 @@ import { getNextEvent } from "@/lib/events";
 import { getMonthlyLeaderboard } from "@/lib/leaderboard";
 import { getMyPointHistory } from "@/lib/points";
 import { ClubEvent, LeaderboardEntry, LedgerEntry, Profile } from "@/lib/types";
-
-function ActionNode({
-  icon,
-  title,
-  body,
-  tone = "blue",
-  onPress
-}: {
-  icon: keyof typeof MaterialCommunityIcons.glyphMap;
-  title: string;
-  body: string;
-  tone?: "blue" | "gold";
-  onPress: () => void;
-}) {
-  const accent = tone === "gold" ? colors.gold : colors.green;
-  return (
-    <Pressable style={({ pressed }) => [styles.node, pressed && styles.pressed]} onPress={onPress}>
-      <View style={[styles.nodeIcon, { backgroundColor: accent }]}>
-        <MaterialCommunityIcons name={icon} size={24} color={colors.navyInk} />
-      </View>
-      <View style={styles.nodeText}>
-        <Text style={styles.nodeTitle}>{title}</Text>
-        <Text style={styles.nodeBody}>{body}</Text>
-      </View>
-      <MaterialCommunityIcons name="chevron-right" size={26} color={colors.muted} />
-    </Pressable>
-  );
-}
 
 export default function DashboardScreen() {
   const [profile, setProfile] = useState<Profile | null>(null);
@@ -76,37 +48,34 @@ export default function DashboardScreen() {
   if (loading) return <ScreenContainer><LoadingState label="Building your club dashboard..." /></ScreenContainer>;
 
   const rank = leaders.find((entry) => entry.user_id === profile?.id)?.rank ?? "-";
+  const firstName = profile?.full_name?.split(" ")[0] ?? "Strategist";
+  const lifetimePoints = profile?.lifetime_points ?? profile?.total_points ?? 0;
+  const spendablePoints = profile?.spendable_points ?? profile?.total_points ?? 0;
 
   return (
     <ScreenContainer>
       <View style={styles.header}>
         <View>
           <Text style={styles.hello}>Today at QU Poker</Text>
-          <Text style={styles.name}>{profile?.full_name?.split(" ")[0] ?? "Strategist"}</Text>
+          <Text style={styles.name}>{firstName}</Text>
         </View>
         <Pressable style={styles.profileBubble} onPress={() => router.push("/profile")}>
           <MaterialCommunityIcons name="account" size={24} color={colors.navyInk} />
         </Pressable>
       </View>
-      <View style={styles.stats}>
-        <StatCard label="Lifetime points" value={profile?.lifetime_points ?? profile?.total_points ?? 0} tone="gold" />
-        <StatCard label="Spendable" value={profile?.spendable_points ?? profile?.total_points ?? 0} />
-      </View>
-      <View style={styles.rankHero}>
-        <View>
-          <Text style={styles.rankLabel}>Monthly rank</Text>
-          <Text style={styles.rankValue}>{rank === "-" ? "Earn points to rank" : `#${rank}`}</Text>
-        </View>
-        <MaterialCommunityIcons name="podium-gold" size={34} color={colors.gold} />
-      </View>
+
+      <ClubPass firstName={firstName} role={profile?.role} lifetimePoints={lifetimePoints} spendablePoints={spendablePoints} rank={rank} />
 
       <View style={styles.path}>
-        <Text style={styles.pathTitle}>Your club path</Text>
-        <ActionNode icon="gift-outline" title="Redeem points" body="Use spendable points for club-approved perks." tone="gold" onPress={() => router.push("/tabs/rewards")} />
-        <ActionNode icon="trophy-outline" title="Find a tournament" body="Register, get a table, and track results." onPress={() => router.push("/tabs/tournaments")} />
-        <ActionNode icon="school-outline" title="Practice strategy" body="Train hand recognition and claim daily practice points." onPress={() => router.push("/tabs/play")} />
+        <View style={styles.pathHeader}>
+          <Text style={styles.pathTitle}>Today’s Quests</Text>
+          <Text style={styles.pathMeta}>Pick one</Text>
+        </View>
+        <QuestCard step={1} icon="gift-outline" title="Redeem points" body="Use spendable points for club-approved perks." reward="Club perks" tone="gold" onPress={() => router.push("/tabs/rewards")} />
+        <QuestCard step={2} icon="trophy-outline" title="Find a tournament" body="Register, get a table, and track results." reward="Table seat" onPress={() => router.push("/tabs/tournaments")} />
+        <QuestCard step={3} icon="school-outline" title="Practice strategy" body="Train hand recognition and claim daily practice points." reward="+10 daily" onPress={() => router.push("/tabs/play")} />
         {profile?.role === "admin" ? (
-          <ActionNode icon="shield-account-outline" title="Officer tools" body="Manage events, rewards, points, and tournaments." onPress={() => router.push("/admin")} />
+          <QuestCard step={4} icon="shield-account-outline" title="Officer tools" body="Manage events, rewards, points, and tournaments." reward="Admin" onPress={() => router.push("/admin")} />
         ) : null}
       </View>
 
@@ -136,18 +105,11 @@ const styles = StyleSheet.create({
   hello: { color: colors.gold, fontWeight: "900", fontSize: 13, textTransform: "uppercase" },
   name: { color: colors.text, fontSize: 40, lineHeight: 42, fontWeight: "900" },
   profileBubble: { width: 52, height: 52, borderRadius: 999, backgroundColor: colors.gold, alignItems: "center", justifyContent: "center" },
-  stats: { flexDirection: "row", gap: 12 },
-  rankHero: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", padding: 18, borderRadius: 26, backgroundColor: colors.greenSoft, borderColor: colors.borderStrong, borderWidth: 1.5 },
-  rankLabel: { color: colors.muted, fontWeight: "800", textTransform: "uppercase", fontSize: 12 },
-  rankValue: { color: colors.text, fontSize: 24, fontWeight: "900" },
   path: { gap: 12, padding: 16, borderRadius: 30, backgroundColor: colors.surface, borderColor: colors.borderStrong, borderWidth: 1.5 },
+  pathHeader: { flexDirection: "row", alignItems: "center", justifyContent: "space-between" },
   pathTitle: { color: colors.text, fontSize: 22, fontWeight: "900" },
-  node: { flexDirection: "row", alignItems: "center", gap: 12, padding: 13, borderRadius: 22, backgroundColor: colors.surfaceRaised, borderColor: colors.border, borderWidth: 1 },
   pressed: { opacity: 0.78, transform: [{ scale: 0.99 }] },
-  nodeIcon: { width: 48, height: 48, borderRadius: 999, alignItems: "center", justifyContent: "center" },
-  nodeText: { flex: 1, gap: 2 },
-  nodeTitle: { color: colors.text, fontWeight: "900", fontSize: 16 },
-  nodeBody: { color: colors.muted, lineHeight: 18, fontSize: 12 },
+  pathMeta: { color: colors.gold, fontWeight: "900", textTransform: "uppercase", fontSize: 12 },
   activity: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", backgroundColor: colors.surfaceRaised, borderRadius: 22, padding: 14, borderColor: colors.borderStrong, borderWidth: 1.5 },
   activityText: { flex: 1, gap: 3 },
   activityReason: { color: colors.text, flex: 1, fontWeight: "700" },

@@ -8,6 +8,9 @@ import { PointsPill } from "./PointsPill";
 export function RewardCard({ reward, onRedeem }: { reward: Reward; onRedeem: () => void }) {
   return (
     <View style={styles.card}>
+      <View style={styles.ribbon}>
+        <Text style={styles.ribbonText}>Perk</Text>
+      </View>
       <View style={styles.row}>
         <View style={styles.badge}>
           <Text style={styles.kind}>{reward.reward_type.replace("_", " ").toUpperCase()}</Text>
@@ -27,6 +30,8 @@ export function RewardCard({ reward, onRedeem }: { reward: Reward; onRedeem: () 
 
 const styles = StyleSheet.create({
   card: { backgroundColor: colors.surfaceRaised, borderColor: colors.borderStrong, borderWidth: 1.5, borderRadius: 26, padding: 18, gap: 13, ...shadows.card },
+  ribbon: { position: "absolute", right: 16, top: -1, width: 48, height: 58, alignItems: "center", justifyContent: "center", backgroundColor: colors.gold, borderBottomLeftRadius: 16, borderBottomRightRadius: 16 },
+  ribbonText: { color: colors.navyInk, fontFamily: fonts.extraBold, fontWeight: "900", fontSize: 11, textTransform: "uppercase", transform: [{ rotate: "-90deg" }] },
   row: { flexDirection: "row", alignItems: "center", justifyContent: "space-between" },
   badge: { backgroundColor: colors.greenSoft, borderRadius: 999, paddingHorizontal: 10, paddingVertical: 6, borderColor: colors.green, borderWidth: 1 },
   kind: { color: colors.green, fontFamily: fonts.bold, fontSize: 11, fontWeight: "900" },
