@@ -54,7 +54,8 @@
         {
           "photosPermission": "Photo library access is used only when you choose a profile photo."
         }
-      ]
+      ],
+      "expo-font"
     ],
     "extra": {
       "supportUrl": "https://qupoker.app/support",
