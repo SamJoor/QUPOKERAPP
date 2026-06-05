@@ -1,21 +1,25 @@
 import { configureFonts, MD3DarkTheme } from "react-native-paper";
 
 export const colors = {
-  background: "#041126",
-  backgroundAlt: "#071a35",
-  surface: "#0b2346",
-  surfaceSoft: "#12315f",
-  surfaceRaised: "#102d58",
-  border: "#264b7a",
-  borderStrong: "#3f6ba4",
-  text: "#f6f8ff",
-  muted: "#b8c8df",
-  green: "#4d9cff",
-  greenSoft: "#102b56",
-  gold: "#f0bd45",
-  goldSoft: "#3c2a09",
+  background: "#06152f",
+  backgroundAlt: "#09204a",
+  surface: "#102a5c",
+  surfaceSoft: "#173872",
+  surfaceRaised: "#1c4382",
+  cardTop: "#1f57a5",
+  border: "#2e5e9f",
+  borderStrong: "#5b8ed5",
+  text: "#f8fbff",
+  muted: "#bfd0ea",
+  green: "#58a8ff",
+  greenSoft: "#123c7a",
+  gold: "#ffd052",
+  goldSoft: "#4b3507",
   red: "#ff6b6b",
-  blue: "#79b7ff"
+  blue: "#8fc4ff",
+  navyInk: "#031025",
+  success: "#63df9c",
+  track: "#071a3a"
 };
 
 export const fonts = {
@@ -48,7 +52,7 @@ const fontConfig = {
 
 export const theme = {
   ...MD3DarkTheme,
-  roundness: 14,
+  roundness: 18,
   fonts: configureFonts({ config: fontConfig }),
   colors: {
     ...MD3DarkTheme.colors,
@@ -66,6 +70,23 @@ export const theme = {
       level1: colors.surface,
       level2: colors.surfaceRaised
     }
+  }
+};
+
+export const shadows = {
+  card: {
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.24,
+    shadowRadius: 14,
+    elevation: 5
+  },
+  lift: {
+    shadowColor: colors.gold,
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.18,
+    shadowRadius: 12,
+    elevation: 4
   }
 };
 

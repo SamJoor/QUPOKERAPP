@@ -1,7 +1,7 @@
 import { Pressable, StyleSheet, View } from "react-native";
 import { Text } from "react-native-paper";
 import { PointsPill } from "@/components/PointsPill";
-import { colors, fonts } from "@/constants/theme";
+import { colors, fonts, shadows } from "@/constants/theme";
 import { TournamentOverview } from "@/lib/tournaments";
 
 const statusTone: Record<TournamentOverview["status"], string> = {
@@ -17,7 +17,9 @@ export function TournamentCard({ tournament, onPress, featured = false }: { tour
   return (
     <Pressable onPress={onPress} style={({ pressed }) => [styles.card, featured && styles.featured, pressed && styles.pressed]}>
       <View style={styles.topRow}>
-        <Text style={[styles.status, { color: statusTone[tournament.status] }]}>{tournament.status.replace("_", " ").toUpperCase()}</Text>
+        <View style={[styles.statusBadge, { borderColor: statusTone[tournament.status] }]}>
+          <Text style={[styles.status, { color: statusTone[tournament.status] }]}>{tournament.status.replace("_", " ").toUpperCase()}</Text>
+        </View>
         {tournament.entry_cost_points ? <PointsPill points={tournament.entry_cost_points} /> : <Text style={styles.free}>Free entry</Text>}
       </View>
       <Text style={featured ? styles.featuredName : styles.name}>{tournament.title}</Text>
@@ -40,10 +42,11 @@ export function TournamentCard({ tournament, onPress, featured = false }: { tour
 }
 
 const styles = StyleSheet.create({
-  card: { gap: 10, padding: 16, borderRadius: 14, backgroundColor: colors.surface, borderColor: colors.border, borderWidth: 1, borderLeftColor: colors.gold, borderLeftWidth: 3 },
-  featured: { borderColor: colors.green, backgroundColor: colors.greenSoft, borderLeftColor: colors.green },
-  pressed: { opacity: 0.78 },
+  card: { gap: 11, padding: 18, borderRadius: 26, backgroundColor: colors.surfaceRaised, borderColor: colors.borderStrong, borderWidth: 1.5, ...shadows.card },
+  featured: { borderColor: colors.gold, backgroundColor: colors.greenSoft },
+  pressed: { opacity: 0.78, transform: [{ scale: 0.99 }] },
   topRow: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", gap: 10 },
+  statusBadge: { borderWidth: 1, borderRadius: 999, paddingHorizontal: 10, paddingVertical: 6, backgroundColor: colors.backgroundAlt },
   status: { fontFamily: fonts.bold, fontWeight: "900", fontSize: 12 },
   free: { color: colors.green, fontFamily: fonts.bold, fontWeight: "900", fontSize: 12 },
   name: { color: colors.text, fontFamily: fonts.bold, fontSize: 19, fontWeight: "900", lineHeight: 24 },
@@ -52,7 +55,7 @@ const styles = StyleSheet.create({
   body: { color: colors.muted, lineHeight: 20 },
   capacityHeader: { flexDirection: "row", justifyContent: "space-between", gap: 10 },
   capacityText: { color: colors.muted, fontFamily: fonts.semibold, fontSize: 12, fontWeight: "800" },
-  capacityTrack: { height: 8, borderRadius: 99, backgroundColor: colors.background, overflow: "hidden" },
+  capacityTrack: { height: 10, borderRadius: 99, backgroundColor: colors.track, overflow: "hidden", borderColor: colors.border, borderWidth: 1 },
   capacityFill: { height: "100%", borderRadius: 99, backgroundColor: colors.green },
   prizeRow: { flexDirection: "row", flexWrap: "wrap", gap: 8 },
   prize: { color: colors.gold, fontFamily: fonts.bold, fontWeight: "900", fontSize: 12 }

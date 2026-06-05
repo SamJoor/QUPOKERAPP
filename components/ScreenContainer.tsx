@@ -23,6 +23,6 @@ export function ScreenContainer({ children, scroll = true, padded = true }: Prop
 const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: colors.background },
   scroll: { flexGrow: 1 },
-  content: { flex: 1, gap: 18 },
-  padded: { padding: 20, paddingBottom: 32 }
+  content: { flex: 1, gap: 20 },
+  padded: { padding: 20, paddingBottom: 36 }
 });

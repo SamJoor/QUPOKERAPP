@@ -1,12 +1,13 @@
 import { useCallback, useState } from "react";
 import { useFocusEffect } from "@react-navigation/native";
 import { SegmentedButtons, Text } from "react-native-paper";
+import { StyleSheet, View } from "react-native";
 import { QRScanner } from "@/components/QRScanner";
 import { EventCard } from "@/components/EventCard";
 import { ScreenContainer } from "@/components/ScreenContainer";
 import { SectionHeader } from "@/components/SectionHeader";
 import { EmptyState, LoadingState } from "@/components/StateViews";
-import { colors } from "@/constants/theme";
+import { colors, fonts, shadows } from "@/constants/theme";
 import { getEvents, getPastEvents } from "@/lib/events";
 import { ClubEvent } from "@/lib/types";
 import { router } from "expo-router";
@@ -34,9 +35,15 @@ export default function EventsScreen() {
 
   return (
     <ScreenContainer>
-      <Text style={{ color: colors.text, fontSize: 30, fontWeight: "900" }}>Events</Text>
-      <SectionHeader title="QR Check-In" />
-      <QRScanner onCode={(code) => router.push(`/check-in/${code}`)} />
+      <View style={styles.hero}>
+        <Text style={styles.kicker}>Campus schedule</Text>
+        <Text style={styles.title}>Events</Text>
+        <Text style={styles.subtitle}>Scan in at club nights, workshops, and friendly tournaments.</Text>
+      </View>
+      <SectionHeader title="Check In" />
+      <View style={styles.scannerWrap}>
+        <QRScanner onCode={(code) => router.push(`/check-in/${code}`)} />
+      </View>
       <SegmentedButtons
         value={view}
         onValueChange={(value) => setView(value as "upcoming" | "past")}
@@ -54,3 +61,11 @@ export default function EventsScreen() {
     </ScreenContainer>
   );
 }
+
+const styles = StyleSheet.create({
+  hero: { gap: 6, padding: 18, borderRadius: 30, backgroundColor: colors.surfaceRaised, borderColor: colors.borderStrong, borderWidth: 1.5, ...shadows.card },
+  kicker: { color: colors.gold, fontFamily: fonts.bold, fontWeight: "900", fontSize: 12, textTransform: "uppercase" },
+  title: { color: colors.text, fontFamily: fonts.heading, fontSize: 42, lineHeight: 44, fontWeight: "900" },
+  subtitle: { color: colors.muted, fontFamily: fonts.regular, lineHeight: 21 },
+  scannerWrap: { borderRadius: 26, overflow: "hidden", borderColor: colors.borderStrong, borderWidth: 1.5 }
+});

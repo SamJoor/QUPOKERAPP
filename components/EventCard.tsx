@@ -2,7 +2,7 @@ import { Pressable, StyleSheet, View } from "react-native";
 import { Text } from "react-native-paper";
 import { router } from "expo-router";
 import { ClubEvent } from "@/lib/types";
-import { colors, fonts } from "@/constants/theme";
+import { colors, fonts, shadows } from "@/constants/theme";
 import { PointsPill } from "./PointsPill";
 
 export function EventCard({ event }: { event: ClubEvent }) {
@@ -16,7 +16,9 @@ export function EventCard({ event }: { event: ClubEvent }) {
   return (
     <Pressable style={styles.card} onPress={() => router.push(`/events/${event.id}`)}>
       <View style={styles.row}>
-        <Text style={styles.type}>{event.event_type.toUpperCase()}</Text>
+        <View style={styles.badge}>
+          <Text style={styles.type}>{event.event_type.toUpperCase()}</Text>
+        </View>
         <PointsPill points={event.points_awarded} />
       </View>
       <Text variant="titleMedium" style={styles.title}>
@@ -32,18 +34,18 @@ export function EventCard({ event }: { event: ClubEvent }) {
 
 const styles = StyleSheet.create({
   card: {
-    backgroundColor: colors.surface,
-    borderColor: colors.border,
-    borderLeftColor: colors.green,
-    borderLeftWidth: 3,
-    borderWidth: 1,
-    borderRadius: 14,
-    padding: 16,
-    gap: 10
+    backgroundColor: colors.surfaceRaised,
+    borderColor: colors.borderStrong,
+    borderWidth: 1.5,
+    borderRadius: 26,
+    padding: 18,
+    gap: 11,
+    ...shadows.card
   },
   row: { flexDirection: "row", alignItems: "center", justifyContent: "space-between" },
-  type: { color: colors.green, fontFamily: fonts.bold, fontSize: 12, fontWeight: "900", letterSpacing: 0 },
-  title: { color: colors.text, fontFamily: fonts.bold, fontWeight: "900" },
+  badge: { backgroundColor: colors.greenSoft, borderColor: colors.green, borderWidth: 1, borderRadius: 999, paddingHorizontal: 10, paddingVertical: 6 },
+  type: { color: colors.green, fontFamily: fonts.bold, fontSize: 11, fontWeight: "900", letterSpacing: 0 },
+  title: { color: colors.text, fontFamily: fonts.bold, fontWeight: "900", fontSize: 19, lineHeight: 23 },
   meta: { color: colors.gold, fontFamily: fonts.semibold, fontWeight: "700", fontSize: 12 },
-  description: { color: colors.muted, lineHeight: 20 }
+  description: { color: colors.muted, fontFamily: fonts.regular, lineHeight: 20 }
 });

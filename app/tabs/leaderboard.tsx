@@ -1,11 +1,11 @@
 import { useEffect, useState } from "react";
-import { StyleSheet } from "react-native";
+import { StyleSheet, View } from "react-native";
 import { router } from "expo-router";
 import { SegmentedButtons, Text } from "react-native-paper";
 import { LeaderboardRow } from "@/components/LeaderboardRow";
 import { ScreenContainer } from "@/components/ScreenContainer";
 import { ErrorState, LoadingState } from "@/components/StateViews";
-import { colors } from "@/constants/theme";
+import { colors, fonts, shadows } from "@/constants/theme";
 import { getAllTimeLeaderboard, getMonthlyLeaderboard } from "@/lib/leaderboard";
 import { LeaderboardEntry } from "@/lib/types";
 
@@ -26,7 +26,11 @@ export default function LeaderboardScreen() {
 
   return (
     <ScreenContainer>
-      <Text style={styles.title}>Leaderboard</Text>
+      <View style={styles.hero}>
+        <Text style={styles.kicker}>Club momentum</Text>
+        <Text style={styles.title}>Leaderboard</Text>
+        <Text style={styles.subtitle}>See who is showing up, practicing, and helping the club grow.</Text>
+      </View>
       <SegmentedButtons
         value={mode}
         onValueChange={setMode}
@@ -43,6 +47,8 @@ export default function LeaderboardScreen() {
 }
 
 const styles = StyleSheet.create({
-  title: { color: colors.text, fontSize: 32, fontWeight: "900" },
-  subtitle: { color: colors.muted, lineHeight: 20 }
+  hero: { gap: 6, padding: 18, borderRadius: 30, backgroundColor: colors.surfaceRaised, borderColor: colors.borderStrong, borderWidth: 1.5, ...shadows.card },
+  kicker: { color: colors.gold, fontFamily: fonts.bold, fontWeight: "900", fontSize: 12, textTransform: "uppercase" },
+  title: { color: colors.text, fontFamily: fonts.heading, fontSize: 42, lineHeight: 44, fontWeight: "900" },
+  subtitle: { color: colors.muted, fontFamily: fonts.regular, lineHeight: 21 }
 });

@@ -22,7 +22,26 @@ export default function TabLayout() {
         headerShown: false,
         tabBarActiveTintColor: colors.green,
         tabBarInactiveTintColor: colors.muted,
-        tabBarStyle: { backgroundColor: colors.backgroundAlt, borderTopColor: colors.border, height: 84, paddingTop: 8 }
+        tabBarLabelStyle: { fontWeight: "900", fontSize: 11 },
+        tabBarStyle: {
+          position: "absolute",
+          left: 14,
+          right: 14,
+          bottom: 10,
+          height: 76,
+          paddingTop: 8,
+          paddingBottom: 10,
+          borderRadius: 28,
+          borderTopWidth: 0,
+          borderWidth: 1,
+          borderColor: colors.borderStrong,
+          backgroundColor: colors.backgroundAlt,
+          elevation: 8,
+          shadowColor: "#000",
+          shadowOffset: { width: 0, height: 8 },
+          shadowOpacity: 0.28,
+          shadowRadius: 16
+        }
       }}
     >
       <Tabs.Screen name="tournaments" options={{ title: "Tourneys", tabBarIcon: ({ color }) => <MaterialCommunityIcons name="trophy-outline" size={24} color={color} /> }} />

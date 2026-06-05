@@ -11,6 +11,6 @@ export function PointsPill({ points }: { points: number }) {
 }
 
 const styles = StyleSheet.create({
-  pill: { paddingHorizontal: 12, paddingVertical: 7, borderRadius: 10, backgroundColor: colors.goldSoft, borderColor: colors.gold, borderWidth: 1 },
+  pill: { paddingHorizontal: 13, paddingVertical: 8, borderRadius: 999, backgroundColor: colors.goldSoft, borderColor: colors.gold, borderWidth: 1.5 },
   text: { color: colors.gold, fontFamily: fonts.bold, fontWeight: "900", fontSize: 12 }
 });

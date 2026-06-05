@@ -14,7 +14,7 @@ export function SectionHeader({ title, action }: { title: string; action?: strin
 }
 
 const styles = StyleSheet.create({
-  row: { flexDirection: "row", justifyContent: "space-between", alignItems: "center" },
-  title: { color: colors.text, fontFamily: fonts.headingSemibold, fontSize: 25, fontWeight: "800", lineHeight: 28 },
+  row: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginTop: 2 },
+  title: { color: colors.text, fontFamily: fonts.headingSemibold, fontSize: 23, fontWeight: "900", lineHeight: 28 },
   action: { color: colors.green, fontFamily: fonts.semibold, fontWeight: "700" }
 });

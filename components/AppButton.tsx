@@ -1,7 +1,7 @@
 import { ReactNode } from "react";
 import { StyleSheet } from "react-native";
 import { Button } from "react-native-paper";
-import { colors, fonts } from "@/constants/theme";
+import { colors, fonts, shadows } from "@/constants/theme";
 
 export function AppButton({
   children,
@@ -25,8 +25,8 @@ export function AppButton({
       contentStyle={styles.content}
       labelStyle={styles.label}
       buttonColor={mode === "contained" ? colors.green : undefined}
-      textColor={mode === "contained" ? "#041226" : colors.green}
-      style={[styles.button, mode === "outlined" && styles.outlined]}
+      textColor={mode === "contained" ? colors.navyInk : colors.green}
+      style={[styles.button, mode === "contained" && styles.contained, mode === "outlined" && styles.outlined]}
     >
       {children}
     </Button>
@@ -34,8 +34,9 @@ export function AppButton({
 }
 
 const styles = StyleSheet.create({
-  button: { borderRadius: 12 },
-  outlined: { borderColor: colors.border },
-  content: { minHeight: 50 },
-  label: { fontFamily: fonts.bold, fontWeight: "800", letterSpacing: 0 }
+  button: { borderRadius: 18 },
+  contained: { ...shadows.lift },
+  outlined: { borderColor: colors.borderStrong, borderWidth: 1.5, backgroundColor: colors.greenSoft },
+  content: { minHeight: 54 },
+  label: { fontFamily: fonts.bold, fontWeight: "900", letterSpacing: 0, fontSize: 15 }
 });

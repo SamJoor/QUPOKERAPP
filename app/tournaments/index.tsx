@@ -7,7 +7,7 @@ import { BackButton } from "@/components/BackButton";
 import { ScreenContainer } from "@/components/ScreenContainer";
 import { EmptyState, ErrorState, LoadingState } from "@/components/StateViews";
 import { TournamentCard } from "@/components/TournamentCard";
-import { colors, disclaimer } from "@/constants/theme";
+import { colors, disclaimer, fonts, shadows } from "@/constants/theme";
 import { getTournamentOverview, TournamentOverview } from "@/lib/tournaments";
 
 type Filter = "open" | "upcoming" | "results" | "all";
@@ -48,9 +48,12 @@ export default function TournamentsScreen() {
   return (
     <ScreenContainer>
       <BackButton fallback="/tabs/dashboard" />
-      <Text style={styles.title}>Tournament Center</Text>
-      <Text style={styles.subtitle}>Friendly non-gambling competitions for practice, recognition, and club engagement.</Text>
-      <AppButton mode="outlined" icon="history" onPress={() => router.push("/tournaments/past")}>Past Tournaments</AppButton>
+      <View style={styles.hero}>
+        <Text style={styles.kicker}>Friendly competition</Text>
+        <Text style={styles.title}>Tournament Center</Text>
+        <Text style={styles.subtitle}>Register, get your table, and track placements after club nights.</Text>
+        <AppButton mode="outlined" icon="history" onPress={() => router.push("/tournaments/past")}>Past Tournaments</AppButton>
+      </View>
       {loading ? <LoadingState label="Loading tournaments..." /> : error ? <ErrorState message={error} onRetry={load} /> : (
         <>
           {featured ? (
@@ -80,9 +83,11 @@ export default function TournamentsScreen() {
 }
 
 const styles = StyleSheet.create({
-  title: { color: colors.text, fontSize: 32, fontWeight: "900" },
-  subtitle: { color: colors.muted, lineHeight: 21 },
+  hero: { gap: 12, padding: 18, borderRadius: 30, backgroundColor: colors.surfaceRaised, borderColor: colors.borderStrong, borderWidth: 1.5, ...shadows.card },
+  kicker: { color: colors.gold, fontFamily: fonts.bold, fontWeight: "900", fontSize: 12, textTransform: "uppercase" },
+  title: { color: colors.text, fontFamily: fonts.heading, fontSize: 42, lineHeight: 44, fontWeight: "900" },
+  subtitle: { color: colors.muted, fontFamily: fonts.regular, lineHeight: 21 },
   section: { gap: 10 },
-  sectionTitle: { color: colors.text, fontSize: 18, fontWeight: "900" },
+  sectionTitle: { color: colors.text, fontFamily: fonts.bold, fontSize: 18, fontWeight: "900" },
   disclaimer: { color: colors.muted, fontSize: 12, lineHeight: 17 }
 });
