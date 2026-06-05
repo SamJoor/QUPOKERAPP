@@ -16,8 +16,6 @@ export function ClubPass({
   spendablePoints: number;
   rank: string | number;
 }) {
-  const progress = lifetimePoints ? Math.min(100, Math.round((spendablePoints / lifetimePoints) * 100)) : 0;
-
   return (
     <View style={styles.pass}>
       <View style={styles.orbLarge} />
@@ -52,15 +50,6 @@ export function ClubPass({
         </View>
       </View>
 
-      <View style={styles.progressWrap}>
-        <View style={styles.progressHeader}>
-          <Text style={styles.progressLabel}>Point balance</Text>
-          <Text style={styles.progressLabel}>{progress}% available</Text>
-        </View>
-        <View style={styles.track}>
-          <View style={[styles.fill, { width: `${progress}%` }]} />
-        </View>
-      </View>
     </View>
   );
 }
@@ -89,10 +78,5 @@ const styles = StyleSheet.create({
   metrics: { flexDirection: "row", gap: 10 },
   metric: { flex: 1, gap: 2, borderRadius: 22, padding: 12, backgroundColor: "rgba(3,16,37,0.34)", borderColor: "rgba(255,255,255,0.13)", borderWidth: 1 },
   metricValue: { color: colors.text, fontFamily: fonts.extraBold, fontWeight: "900", fontSize: 22 },
-  metricLabel: { color: colors.muted, fontFamily: fonts.semibold, fontWeight: "800", fontSize: 11, textTransform: "uppercase" },
-  progressWrap: { gap: 8 },
-  progressHeader: { flexDirection: "row", justifyContent: "space-between" },
-  progressLabel: { color: colors.muted, fontFamily: fonts.semibold, fontWeight: "800", fontSize: 12 },
-  track: { height: 12, borderRadius: 999, backgroundColor: colors.track, overflow: "hidden", borderColor: "rgba(255,255,255,0.16)", borderWidth: 1 },
-  fill: { height: "100%", borderRadius: 999, backgroundColor: colors.gold }
+  metricLabel: { color: colors.muted, fontFamily: fonts.semibold, fontWeight: "800", fontSize: 11, textTransform: "uppercase" }
 });
