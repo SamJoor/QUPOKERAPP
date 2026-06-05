@@ -2,6 +2,7 @@ import { StyleSheet, View } from "react-native";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { Text } from "react-native-paper";
 import { colors, fonts, shadows } from "@/constants/theme";
+import { CardFan, QUChip, SuitRail } from "./PokerMotifs";
 
 export function ClubPass({
   firstName,
@@ -22,8 +23,9 @@ export function ClubPass({
       <View style={styles.orbSmall} />
       <View style={styles.topRow}>
         <View style={styles.seal}>
-          <Text style={styles.sealText}>QU</Text>
+          <QUChip size={58} />
         </View>
+        <CardFan small />
         <View style={styles.rolePill}>
           <MaterialCommunityIcons name={role === "admin" ? "shield-star" : "account-star"} size={16} color={colors.navyInk} />
           <Text style={styles.roleText}>{role === "admin" ? "Officer" : "Member"}</Text>
@@ -49,6 +51,7 @@ export function ClubPass({
           <Text style={styles.metricLabel}>Rank</Text>
         </View>
       </View>
+      <SuitRail />
 
     </View>
   );
@@ -68,7 +71,7 @@ const styles = StyleSheet.create({
   orbLarge: { position: "absolute", right: -46, top: -44, width: 150, height: 150, borderRadius: 999, backgroundColor: "rgba(255,208,82,0.2)" },
   orbSmall: { position: "absolute", left: -28, bottom: -34, width: 98, height: 98, borderRadius: 999, backgroundColor: "rgba(143,196,255,0.24)" },
   topRow: { flexDirection: "row", justifyContent: "space-between", alignItems: "center" },
-  seal: { width: 58, height: 58, borderRadius: 20, alignItems: "center", justifyContent: "center", backgroundColor: colors.gold, borderColor: "rgba(3,16,37,0.28)", borderWidth: 2 },
+  seal: { width: 58, height: 58, alignItems: "center", justifyContent: "center" },
   sealText: { color: colors.navyInk, fontFamily: fonts.extraBold, fontWeight: "900", fontSize: 20 },
   rolePill: { flexDirection: "row", alignItems: "center", gap: 6, borderRadius: 999, backgroundColor: colors.gold, paddingHorizontal: 12, paddingVertical: 8 },
   roleText: { color: colors.navyInk, fontFamily: fonts.bold, fontWeight: "900", fontSize: 12, textTransform: "uppercase" },

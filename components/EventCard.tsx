@@ -4,6 +4,7 @@ import { router } from "expo-router";
 import { ClubEvent } from "@/lib/types";
 import { colors, fonts, shadows } from "@/constants/theme";
 import { PointsPill } from "./PointsPill";
+import { SuitRail, TicketPerforation } from "./PokerMotifs";
 
 export function EventCard({ event }: { event: ClubEvent }) {
   const date = new Date(event.starts_at);
@@ -27,6 +28,7 @@ export function EventCard({ event }: { event: ClubEvent }) {
         <Text style={styles.day}>{day}</Text>
         <Text style={styles.time}>{time}</Text>
       </View>
+      <TicketPerforation />
       <View style={styles.ticketBody}>
         <View style={styles.notchTop} />
         <View style={styles.notchBottom} />
@@ -43,6 +45,7 @@ export function EventCard({ event }: { event: ClubEvent }) {
           {startsAt} / {event.location}
         </Text>
         <Text style={styles.description}>{event.description}</Text>
+        <SuitRail />
       </View>
     </Pressable>
   );

@@ -3,6 +3,7 @@ import { Text } from "react-native-paper";
 import { PointsPill } from "@/components/PointsPill";
 import { colors, fonts, shadows } from "@/constants/theme";
 import { TournamentOverview } from "@/lib/tournaments";
+import { CardFan, ChipStack, SuitRail } from "./PokerMotifs";
 
 const statusTone: Record<TournamentOverview["status"], string> = {
   upcoming: colors.blue,
@@ -18,7 +19,14 @@ export function TournamentCard({ tournament, onPress, featured = false }: { tour
     <Pressable onPress={onPress} style={({ pressed }) => [styles.card, featured && styles.featured, pressed && styles.pressed]}>
       <View style={styles.crownBand}>
         <Text style={styles.crownText}>{featured ? "Featured Sit & Go" : "Club Tournament"}</Text>
-        <Text style={styles.crownMark}>QU</Text>
+        <ChipStack />
+      </View>
+      <View style={styles.fanRow}>
+        <CardFan small />
+        <View style={styles.fanCopy}>
+          <Text style={styles.fanLabel}>Table draw</Text>
+          <Text style={styles.fanText}>Register to claim a seat</Text>
+        </View>
       </View>
       <View style={styles.topRow}>
         <View style={[styles.statusBadge, { borderColor: statusTone[tournament.status] }]}>
@@ -41,6 +49,9 @@ export function TournamentCard({ tournament, onPress, featured = false }: { tour
         <Text style={styles.prize}>2nd +{tournament.reward_points_second}</Text>
         <Text style={styles.prize}>3rd +{tournament.reward_points_third}</Text>
       </View>
+      <View style={styles.railWrap}>
+        <SuitRail />
+      </View>
     </Pressable>
   );
 }
@@ -49,9 +60,13 @@ const styles = StyleSheet.create({
   card: { gap: 12, padding: 0, borderRadius: 28, overflow: "hidden", backgroundColor: colors.surfaceRaised, borderColor: colors.borderStrong, borderWidth: 1.5, ...shadows.card },
   featured: { borderColor: colors.gold, backgroundColor: colors.greenSoft },
   pressed: { opacity: 0.78, transform: [{ scale: 0.99 }] },
-  crownBand: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingHorizontal: 16, paddingVertical: 12, backgroundColor: colors.gold },
+  crownBand: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingHorizontal: 16, paddingVertical: 10, backgroundColor: colors.gold },
   crownText: { color: colors.navyInk, fontFamily: fonts.bold, fontWeight: "900", textTransform: "uppercase", fontSize: 12 },
   crownMark: { color: colors.navyInk, fontFamily: fonts.extraBold, fontWeight: "900", fontSize: 17 },
+  fanRow: { flexDirection: "row", alignItems: "center", gap: 12, paddingHorizontal: 16 },
+  fanCopy: { flex: 1, gap: 2 },
+  fanLabel: { color: colors.gold, fontFamily: fonts.bold, fontWeight: "900", fontSize: 12, textTransform: "uppercase" },
+  fanText: { color: colors.muted, fontFamily: fonts.regular, fontSize: 12 },
   topRow: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", gap: 10, paddingHorizontal: 16 },
   statusBadge: { borderWidth: 1, borderRadius: 999, paddingHorizontal: 10, paddingVertical: 6, backgroundColor: colors.backgroundAlt },
   status: { fontFamily: fonts.bold, fontWeight: "900", fontSize: 12 },
@@ -64,6 +79,7 @@ const styles = StyleSheet.create({
   capacityText: { color: colors.muted, fontFamily: fonts.semibold, fontSize: 12, fontWeight: "800" },
   capacityTrack: { height: 10, borderRadius: 99, backgroundColor: colors.track, overflow: "hidden", borderColor: colors.border, borderWidth: 1, marginHorizontal: 16 },
   capacityFill: { height: "100%", borderRadius: 99, backgroundColor: colors.green },
-  prizeRow: { flexDirection: "row", flexWrap: "wrap", gap: 8, paddingHorizontal: 16, paddingBottom: 16 },
+  prizeRow: { flexDirection: "row", flexWrap: "wrap", gap: 8, paddingHorizontal: 16 },
+  railWrap: { paddingHorizontal: 16, paddingBottom: 16 },
   prize: { color: colors.gold, fontFamily: fonts.bold, fontWeight: "900", fontSize: 12 }
 });
