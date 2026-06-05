@@ -3,7 +3,7 @@ import { Snackbar, Text } from "react-native-paper";
 import { ConfirmModal } from "@/components/ConfirmModal";
 import { RewardCard } from "@/components/RewardCard";
 import { ScreenContainer } from "@/components/ScreenContainer";
-import { LoadingState } from "@/components/StateViews";
+import { EmptyState, LoadingState } from "@/components/StateViews";
 import { colors } from "@/constants/theme";
 import { getCurrentProfile } from "@/lib/auth";
 import { getRewards, redeemReward } from "@/lib/rewards";
@@ -45,7 +45,9 @@ export default function RewardsScreen() {
     <ScreenContainer>
       <Text style={{ color: colors.text, fontSize: 32, fontWeight: "900" }}>Rewards</Text>
       <Text style={{ color: colors.gold, fontWeight: "900" }}>Spendable balance: {profile?.spendable_points ?? profile?.total_points ?? 0} pts</Text>
-      {loading ? <LoadingState /> : rewards.map((reward) => <RewardCard key={reward.id} reward={reward} onRedeem={() => setSelected(reward)} />)}
+      {loading ? <LoadingState /> : rewards.length ? rewards.map((reward) => <RewardCard key={reward.id} reward={reward} onRedeem={() => setSelected(reward)} />) : (
+        <EmptyState title="No rewards posted" body="Officer-approved perks such as tournament entries, merch, and recognition will appear here." />
+      )}
       <ConfirmModal
         visible={Boolean(selected)}
         title="Redeem reward?"

@@ -12,11 +12,22 @@ export function LoadingState({ label = "Loading..." }: { label?: string }) {
   );
 }
 
-export function EmptyState({ title, body }: { title: string; body: string }) {
+export function EmptyState({
+  title,
+  body,
+  actionLabel,
+  onAction
+}: {
+  title: string;
+  body: string;
+  actionLabel?: string;
+  onAction?: () => void;
+}) {
   return (
     <View style={styles.state}>
       <Text style={styles.title}>{title}</Text>
       <Text style={styles.text}>{body}</Text>
+      {actionLabel && onAction ? <AppButton mode="outlined" onPress={onAction}>{actionLabel}</AppButton> : null}
     </View>
   );
 }

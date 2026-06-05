@@ -5,7 +5,7 @@ import { QRScanner } from "@/components/QRScanner";
 import { EventCard } from "@/components/EventCard";
 import { ScreenContainer } from "@/components/ScreenContainer";
 import { SectionHeader } from "@/components/SectionHeader";
-import { LoadingState } from "@/components/StateViews";
+import { EmptyState, LoadingState } from "@/components/StateViews";
 import { colors } from "@/constants/theme";
 import { getEvents, getPastEvents } from "@/lib/events";
 import { ClubEvent } from "@/lib/types";
@@ -47,9 +47,9 @@ export default function EventsScreen() {
       />
       <SectionHeader title={view === "upcoming" ? "Upcoming" : "Past Events"} />
       {view === "upcoming" ? (
-        events.length ? events.map((event) => <EventCard key={event.id} event={event} />) : <Text style={{ color: colors.muted }}>No active events yet.</Text>
+        events.length ? events.map((event) => <EventCard key={event.id} event={event} />) : <EmptyState title="No upcoming events" body="Officers have not posted the next meeting or tournament night yet." />
       ) : (
-        pastEvents.length ? pastEvents.map((event) => <EventCard key={event.id} event={event} />) : <Text style={{ color: colors.muted }}>No past events yet.</Text>
+        pastEvents.length ? pastEvents.map((event) => <EventCard key={event.id} event={event} />) : <EmptyState title="No past events" body="Completed meetings and tournament nights will appear here after they end." />
       )}
     </ScreenContainer>
   );

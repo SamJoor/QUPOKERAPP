@@ -231,8 +231,12 @@ export default function PlayScreen() {
 
       {mode === "online" ? (
         <>
+          <View style={styles.betaBanner}>
+            <Text style={styles.betaLabel}>Beta</Text>
+            <Text style={styles.betaText}>Friend invites and queueing are available for exec testing. The full live poker table is still in active development.</Text>
+          </View>
           <PokerCard title="Friendly Matches">
-            <Text style={styles.copy}>Queue for non-gambling practice matches against other members, or create a private match invite for a friend.</Text>
+            <Text style={styles.copy}>Create a private invite or join the practice queue. No real-money wagering or cash-value chips are supported.</Text>
             <View style={styles.actions}>
               <AppButton icon="share-variant-outline" onPress={shareInviteLink} disabled={creatingInvite}>
                 {creatingInvite ? "Creating Link..." : "Share Invite Link"}
@@ -262,7 +266,7 @@ export default function PlayScreen() {
               </View>
             )) : <Text style={styles.meta}>Completed and cancelled matches will appear here.</Text>}
           </PokerCard>
-          <Text style={styles.meta}>Realtime subscriptions and action history are now in the service layer. The next UI step is a dedicated live table screen that calls updatePokerMatchState for each turn.</Text>
+          <Text style={styles.meta}>Exec test note: use this area to validate invites, queue state, and match history. Full turn-by-turn multiplayer should be reviewed as a roadmap item.</Text>
         </>
       ) : null}
 
@@ -289,5 +293,8 @@ const styles = StyleSheet.create({
   meta: { color: colors.muted, lineHeight: 20, fontSize: 13 },
   matchRow: { padding: 12, borderRadius: 14, backgroundColor: colors.background, borderColor: colors.border, borderWidth: 1 },
   matchText: { gap: 3 },
+  betaBanner: { gap: 6, padding: 14, borderRadius: 14, backgroundColor: colors.goldSoft, borderColor: colors.gold, borderWidth: 1 },
+  betaLabel: { color: colors.gold, fontWeight: "900", textTransform: "uppercase", fontSize: 12 },
+  betaText: { color: colors.text, lineHeight: 20 },
   disclaimer: { color: colors.muted, fontSize: 12, lineHeight: 17 }
 });
