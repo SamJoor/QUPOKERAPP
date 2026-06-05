@@ -32,6 +32,7 @@ export default function RootLayout() {
         <Stack.Screen name="auth/login" options={{ gestureEnabled: true }} />
         <Stack.Screen name="auth/signup" options={{ gestureEnabled: true }} />
         <Stack.Screen name="auth/forgot-password" options={{ gestureEnabled: true }} />
+        <Stack.Screen name="auth/update-password" options={{ gestureEnabled: false }} />
         <Stack.Screen name="onboarding/complete-profile" options={{ gestureEnabled: false }} />
         <Stack.Screen name="tabs" options={{ gestureEnabled: false }} />
         <Stack.Screen name="events/[id]" />

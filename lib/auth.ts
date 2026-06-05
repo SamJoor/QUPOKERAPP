@@ -1,3 +1,4 @@
+import * as Linking from "expo-linking";
 import { supabase, hasSupabaseConfig } from "./supabase";
 import { demoProfile } from "./mockData";
 import { Profile } from "./types";
@@ -57,7 +58,40 @@ export async function signUp(email: string, password: string, fullName: string) 
 
 export async function resetPassword(email: string) {
   if (!hasSupabaseConfig) return;
-  const { error } = await supabase.auth.resetPasswordForEmail(email);
+  const { error } = await supabase.auth.resetPasswordForEmail(email, {
+    redirectTo: Linking.createURL("/auth/update-password")
+  });
+  if (error) throw error;
+}
+
+export async function establishPasswordRecoverySession(url: string | null) {
+  if (!hasSupabaseConfig || !url) return;
+
+  const parsed = new URL(url);
+  const hashParams = new URLSearchParams(parsed.hash.replace(/^#/, ""));
+  const queryParams = parsed.searchParams;
+  const accessToken = hashParams.get("access_token") ?? queryParams.get("access_token");
+  const refreshToken = hashParams.get("refresh_token") ?? queryParams.get("refresh_token");
+  const code = queryParams.get("code") ?? hashParams.get("code");
+
+  if (accessToken && refreshToken) {
+    const { error } = await supabase.auth.setSession({
+      access_token: accessToken,
+      refresh_token: refreshToken
+    });
+    if (error) throw error;
+    return;
+  }
+
+  if (code) {
+    const { error } = await supabase.auth.exchangeCodeForSession(code);
+    if (error) throw error;
+  }
+}
+
+export async function updatePassword(password: string) {
+  if (!hasSupabaseConfig) return;
+  const { error } = await supabase.auth.updateUser({ password });
   if (error) throw error;
 }
 
