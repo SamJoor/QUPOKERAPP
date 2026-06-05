@@ -4,6 +4,7 @@ import { router, useLocalSearchParams } from "expo-router";
 import { Snackbar, Text, TextInput } from "react-native-paper";
 import { AppButton } from "@/components/AppButton";
 import { BackButton } from "@/components/BackButton";
+import { FormShell } from "@/components/DesignSystem";
 import { ScreenContainer } from "@/components/ScreenContainer";
 import { colors, fonts } from "@/constants/theme";
 import { getCurrentProfile, signIn } from "@/lib/auth";
@@ -54,13 +55,11 @@ export default function LoginScreen() {
     <ScreenContainer>
       <BackButton />
       <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : undefined} style={styles.form}>
-        <View style={styles.brand}>
+        <View style={styles.brandRow}>
           <Image source={require("../../assets/icon.png")} style={styles.logo} />
-          <Text style={styles.kicker}>QU Poker & Strategy Club</Text>
-          <Text style={styles.title}>Sign in</Text>
-          <Text style={styles.subtitle}>Members use this login for events, points, rewards, tournaments, and strategy practice.</Text>
+          <Text style={styles.kicker}>Member access</Text>
         </View>
-        <View style={styles.panel}>
+        <FormShell title="Sign in" subtitle="Use your email and password for check-ins, points, tournaments, and rewards.">
           <TextInput label="Email address" value={email} onChangeText={setEmail} autoCapitalize="none" autoCorrect={false} keyboardType="email-address" mode="outlined" textContentType="emailAddress" />
           <TextInput label="Password" value={password} onChangeText={setPassword} secureTextEntry mode="outlined" textContentType="password" />
           <AppButton icon="login" onPress={submit} disabled={loading}>
@@ -69,7 +68,7 @@ export default function LoginScreen() {
           <AppButton mode="text" onPress={() => router.push("/auth/forgot-password")}>
             Forgot password?
           </AppButton>
-        </View>
+        </FormShell>
       </KeyboardAvoidingView>
       <Snackbar visible={Boolean(error)} onDismiss={() => setError("")}>{error}</Snackbar>
     </ScreenContainer>
@@ -78,10 +77,9 @@ export default function LoginScreen() {
 
 const styles = StyleSheet.create({
   form: { gap: 18, flex: 1, justifyContent: "center" },
-  brand: { gap: 8 },
+  brandRow: { flexDirection: "row", alignItems: "center", gap: 12 },
   logo: { width: 72, height: 72, borderRadius: 18 },
   kicker: { color: colors.gold, fontFamily: fonts.semibold, fontSize: 12, fontWeight: "900", textTransform: "uppercase" },
   title: { color: colors.text, fontFamily: fonts.heading, fontSize: 54, lineHeight: 54, fontWeight: "900" },
-  subtitle: { color: colors.muted, lineHeight: 22 },
-  panel: { gap: 12, padding: 16, borderRadius: 22, backgroundColor: colors.surface, borderColor: colors.border, borderWidth: 1 }
+  subtitle: { color: colors.muted, lineHeight: 22 }
 });

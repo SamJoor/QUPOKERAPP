@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { Share, StyleSheet, View } from "react-native";
 import { SegmentedButtons, Snackbar, Text, TextInput } from "react-native-paper";
 import { AppButton } from "@/components/AppButton";
+import { LabHeader, StrategyTile } from "@/components/DesignSystem";
 import { PlayingCardDisplay } from "@/components/PlayingCardDisplay";
 import { PokerCard } from "@/components/PokerCard";
 import { ScreenContainer } from "@/components/ScreenContainer";
@@ -123,8 +124,12 @@ export default function PlayScreen() {
 
   return (
     <ScreenContainer>
-      <Text style={styles.title}>Poker Arena</Text>
-      <Text style={styles.subtitle}>Play heads-up practice poker against bots, train hand reading, or prepare friendly online matches. Practice chips have no cash value.</Text>
+      <LabHeader eyebrow="Strategy lab" title="Poker Arena" subtitle="Practice against bots, train hand reading, and prepare friendly club matches. Practice chips have no cash value." icon="cards-playing-outline" />
+      <View style={styles.strategyGrid}>
+        <StrategyTile icon="robot-outline" title="Bot ladder" value="3" label="levels" onPress={() => setMode("arena")} />
+        <StrategyTile icon="school-outline" title="Trainer" value="+10" label="daily pts" onPress={() => setMode("trainer")} />
+        <StrategyTile icon="account-group-outline" title="Friends" value="Beta" label="matches" onPress={() => setMode("online")} />
+      </View>
       <SegmentedButtons
         value={mode}
         onValueChange={(value) => setMode(value as Mode)}
@@ -277,8 +282,7 @@ export default function PlayScreen() {
 }
 
 const styles = StyleSheet.create({
-  title: { color: colors.text, fontSize: 32, fontWeight: "900" },
-  subtitle: { color: colors.muted, lineHeight: 21 },
+  strategyGrid: { flexDirection: "row", gap: 10 },
   cards: { flexDirection: "row", flexWrap: "wrap", gap: 10 },
   options: { gap: 8 },
   levels: { gap: 8 },

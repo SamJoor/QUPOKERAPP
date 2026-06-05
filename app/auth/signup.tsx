@@ -4,6 +4,7 @@ import { router, useLocalSearchParams } from "expo-router";
 import { Snackbar, Text, TextInput } from "react-native-paper";
 import { AppButton } from "@/components/AppButton";
 import { BackButton } from "@/components/BackButton";
+import { FormShell } from "@/components/DesignSystem";
 import { ScreenContainer } from "@/components/ScreenContainer";
 import { colors, fonts } from "@/constants/theme";
 import { signUp } from "@/lib/auth";
@@ -54,13 +55,11 @@ export default function SignupScreen() {
     <ScreenContainer>
       <BackButton />
       <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : undefined} style={styles.form}>
-        <View style={styles.brand}>
+        <View style={styles.brandRow}>
           <Image source={require("../../assets/icon.png")} style={styles.logo} />
           <Text style={styles.kicker}>QU Poker membership</Text>
-          <Text style={styles.title}>Join the club</Text>
-          <Text style={styles.subtitle}>Create a member login for check-ins, points, tournament entries, and rewards.</Text>
         </View>
-        <View style={styles.panel}>
+        <FormShell title="Join the club" subtitle="Create your member login for check-ins, point progress, tournament entries, and rewards.">
           <TextInput label="Full name" value={fullName} onChangeText={setFullName} mode="outlined" textContentType="name" />
           <TextInput label="Email address" value={email} onChangeText={setEmail} autoCapitalize="none" autoCorrect={false} keyboardType="email-address" mode="outlined" textContentType="emailAddress" />
           <TextInput label="Password" value={password} onChangeText={setPassword} secureTextEntry mode="outlined" textContentType="newPassword" />
@@ -68,7 +67,7 @@ export default function SignupScreen() {
           <AppButton icon="account-plus-outline" onPress={submit} disabled={loading || !fullName || !email || password.length < 8}>
             {loading ? "Creating..." : "Create Account"}
           </AppButton>
-        </View>
+        </FormShell>
       </KeyboardAvoidingView>
       <Snackbar visible={Boolean(message)} onDismiss={() => setMessage("")}>{message}</Snackbar>
     </ScreenContainer>
@@ -77,11 +76,8 @@ export default function SignupScreen() {
 
 const styles = StyleSheet.create({
   form: { gap: 18, flex: 1, justifyContent: "center" },
-  brand: { gap: 8 },
+  brandRow: { flexDirection: "row", alignItems: "center", gap: 12 },
   logo: { width: 72, height: 72, borderRadius: 18 },
   kicker: { color: colors.gold, fontFamily: fonts.semibold, fontSize: 12, fontWeight: "900", textTransform: "uppercase" },
-  title: { color: colors.text, fontFamily: fonts.heading, fontSize: 54, lineHeight: 54, fontWeight: "900" },
-  subtitle: { color: colors.muted, lineHeight: 22 },
-  panel: { gap: 12, padding: 16, borderRadius: 22, backgroundColor: colors.surface, borderColor: colors.border, borderWidth: 1 },
   passwordHelp: { color: colors.muted, fontSize: 12, fontWeight: "700" }
 });

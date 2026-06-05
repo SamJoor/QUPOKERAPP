@@ -2,10 +2,10 @@ import { useEffect, useState } from "react";
 import { StyleSheet, View } from "react-native";
 import { router } from "expo-router";
 import { SegmentedButtons, Text } from "react-native-paper";
-import { LeaderboardRow } from "@/components/LeaderboardRow";
+import { LabHeader, PodiumStrip } from "@/components/DesignSystem";
 import { ScreenContainer } from "@/components/ScreenContainer";
 import { ErrorState, LoadingState } from "@/components/StateViews";
-import { colors, fonts, shadows } from "@/constants/theme";
+import { colors, fonts } from "@/constants/theme";
 import { getAllTimeLeaderboard, getMonthlyLeaderboard } from "@/lib/leaderboard";
 import { LeaderboardEntry } from "@/lib/types";
 
@@ -26,11 +26,7 @@ export default function LeaderboardScreen() {
 
   return (
     <ScreenContainer>
-      <View style={styles.hero}>
-        <Text style={styles.kicker}>Club momentum</Text>
-        <Text style={styles.title}>Leaderboard</Text>
-        <Text style={styles.subtitle}>See who is showing up, practicing, and helping the club grow.</Text>
-      </View>
+      <LabHeader eyebrow="Club momentum" title="Leaderboard" subtitle="Track attendance, practice, events, and tournament engagement." icon="podium-gold" />
       <SegmentedButtons
         value={mode}
         onValueChange={setMode}
@@ -40,15 +36,12 @@ export default function LeaderboardScreen() {
         ]}
       />
       {loading ? <LoadingState /> : error ? <ErrorState message={error} /> : rows.map((entry) => (
-        <LeaderboardRow key={entry.user_id} entry={entry} onPress={() => router.push(`/members/${entry.user_id}`)} />
+        <PodiumStrip key={entry.user_id} rank={entry.rank} name={entry.full_name} points={entry.total_points} onPress={() => router.push(`/members/${entry.user_id}`)} />
       ))}
     </ScreenContainer>
   );
 }
 
 const styles = StyleSheet.create({
-  hero: { gap: 6, padding: 18, borderRadius: 30, backgroundColor: colors.surfaceRaised, borderColor: colors.borderStrong, borderWidth: 1.5, ...shadows.card },
-  kicker: { color: colors.gold, fontFamily: fonts.bold, fontWeight: "900", fontSize: 12, textTransform: "uppercase" },
-  title: { color: colors.text, fontFamily: fonts.heading, fontSize: 42, lineHeight: 44, fontWeight: "900" },
-  subtitle: { color: colors.muted, fontFamily: fonts.regular, lineHeight: 21 }
+  title: { color: colors.text, fontFamily: fonts.heading, fontSize: 42, lineHeight: 44, fontWeight: "900" }
 });
