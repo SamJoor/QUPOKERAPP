@@ -19,6 +19,8 @@ export const colors = {
 };
 
 export const fonts = {
+  heading: "BarlowCondensed_700Bold",
+  headingSemibold: "BarlowCondensed_600SemiBold",
   regular: "Sora_400Regular",
   medium: "Sora_500Medium",
   semibold: "Sora_600SemiBold",
@@ -27,13 +29,13 @@ export const fonts = {
 };
 
 const fontConfig = {
-  displayLarge: { fontFamily: fonts.extraBold },
-  displayMedium: { fontFamily: fonts.extraBold },
-  displaySmall: { fontFamily: fonts.extraBold },
-  headlineLarge: { fontFamily: fonts.extraBold },
-  headlineMedium: { fontFamily: fonts.bold },
-  headlineSmall: { fontFamily: fonts.bold },
-  titleLarge: { fontFamily: fonts.bold },
+  displayLarge: { fontFamily: fonts.heading },
+  displayMedium: { fontFamily: fonts.heading },
+  displaySmall: { fontFamily: fonts.heading },
+  headlineLarge: { fontFamily: fonts.heading },
+  headlineMedium: { fontFamily: fonts.heading },
+  headlineSmall: { fontFamily: fonts.headingSemibold },
+  titleLarge: { fontFamily: fonts.headingSemibold },
   titleMedium: { fontFamily: fonts.semibold },
   titleSmall: { fontFamily: fonts.semibold },
   labelLarge: { fontFamily: fonts.bold },

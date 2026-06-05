@@ -1,6 +1,6 @@
 import { StyleSheet, View } from "react-native";
 import { Text } from "react-native-paper";
-import { colors } from "@/constants/theme";
+import { colors, fonts } from "@/constants/theme";
 
 export function SectionHeader({ title, action }: { title: string; action?: string }) {
   return (
@@ -15,6 +15,6 @@ export function SectionHeader({ title, action }: { title: string; action?: strin
 
 const styles = StyleSheet.create({
   row: { flexDirection: "row", justifyContent: "space-between", alignItems: "center" },
-  title: { color: colors.text, fontWeight: "800" },
-  action: { color: colors.green, fontWeight: "700" }
+  title: { color: colors.text, fontFamily: fonts.headingSemibold, fontSize: 25, fontWeight: "800", lineHeight: 28 },
+  action: { color: colors.green, fontFamily: fonts.semibold, fontWeight: "700" }
 });

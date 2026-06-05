@@ -5,7 +5,7 @@ import { Snackbar, Text, TextInput } from "react-native-paper";
 import { AppButton } from "@/components/AppButton";
 import { BackButton } from "@/components/BackButton";
 import { ScreenContainer } from "@/components/ScreenContainer";
-import { colors } from "@/constants/theme";
+import { colors, fonts } from "@/constants/theme";
 import { getCurrentProfile, signIn } from "@/lib/auth";
 
 function isValidEmail(value: string) {
@@ -57,8 +57,8 @@ export default function LoginScreen() {
         <View style={styles.brand}>
           <Image source={require("../../assets/icon.png")} style={styles.logo} />
           <Text style={styles.kicker}>QU Poker & Strategy Club</Text>
-          <Text style={styles.title}>Member sign in</Text>
-          <Text style={styles.subtitle}>Use the email and password attached to your club account.</Text>
+          <Text style={styles.title}>Sign in</Text>
+          <Text style={styles.subtitle}>Members use this login for events, points, rewards, tournaments, and strategy practice.</Text>
         </View>
         <View style={styles.panel}>
           <TextInput label="Email address" value={email} onChangeText={setEmail} autoCapitalize="none" autoCorrect={false} keyboardType="email-address" mode="outlined" textContentType="emailAddress" />
@@ -80,8 +80,8 @@ const styles = StyleSheet.create({
   form: { gap: 18, flex: 1, justifyContent: "center" },
   brand: { gap: 8 },
   logo: { width: 72, height: 72, borderRadius: 18 },
-  kicker: { color: colors.gold, fontSize: 12, fontWeight: "900", textTransform: "uppercase" },
-  title: { color: colors.text, fontSize: 36, lineHeight: 40, fontWeight: "900" },
+  kicker: { color: colors.gold, fontFamily: fonts.semibold, fontSize: 12, fontWeight: "900", textTransform: "uppercase" },
+  title: { color: colors.text, fontFamily: fonts.heading, fontSize: 54, lineHeight: 54, fontWeight: "900" },
   subtitle: { color: colors.muted, lineHeight: 22 },
   panel: { gap: 12, padding: 16, borderRadius: 22, backgroundColor: colors.surface, borderColor: colors.border, borderWidth: 1 }
 });

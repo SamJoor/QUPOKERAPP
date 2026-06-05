@@ -6,7 +6,7 @@ import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { AppButton } from "@/components/AppButton";
 import { ScreenContainer } from "@/components/ScreenContainer";
 import { LoadingState } from "@/components/StateViews";
-import { colors, disclaimer } from "@/constants/theme";
+import { colors, disclaimer, fonts } from "@/constants/theme";
 import { getCurrentSession } from "@/lib/auth";
 
 const highlights = [
@@ -46,10 +46,10 @@ export default function WelcomeScreen() {
             <Text style={styles.clubSub}>Strategy Club</Text>
           </View>
         </View>
-        <Text style={styles.eyebrow}>Campus events. Strategy practice. Friendly competition.</Text>
-        <Text style={styles.title}>Your club night command center.</Text>
+        <Text style={styles.eyebrow}>Events. Points. Tournaments. Strategy.</Text>
+        <Text style={styles.title}>The home base for QU Poker.</Text>
         <Text style={styles.subtitle}>
-          Check in at meetings, manage tournament entries, redeem engagement points, and keep the focus on poker strategy.
+          Sign in for check-ins, club points, rewards, leaderboards, and friendly poker strategy nights.
         </Text>
         <View style={styles.actions}>
           <AppButton icon="account-plus-outline" onPress={() => router.push("/auth/signup")}>
@@ -80,16 +80,16 @@ const styles = StyleSheet.create({
   hero: { gap: 16, paddingTop: 18 },
   brandRow: { flexDirection: "row", alignItems: "center", gap: 12 },
   logo: { width: 68, height: 68, borderRadius: 18 },
-  club: { color: colors.text, fontWeight: "900", fontSize: 20 },
-  clubSub: { color: colors.gold, fontWeight: "900", fontSize: 13, textTransform: "uppercase" },
-  eyebrow: { color: colors.gold, fontWeight: "900", fontSize: 12, textTransform: "uppercase", lineHeight: 18 },
-  title: { color: colors.text, fontSize: 42, lineHeight: 45, fontWeight: "900" },
+  club: { color: colors.text, fontFamily: fonts.headingSemibold, fontWeight: "900", fontSize: 28, lineHeight: 30 },
+  clubSub: { color: colors.gold, fontFamily: fonts.semibold, fontWeight: "900", fontSize: 13, textTransform: "uppercase" },
+  eyebrow: { color: colors.gold, fontFamily: fonts.semibold, fontWeight: "900", fontSize: 12, textTransform: "uppercase", lineHeight: 18 },
+  title: { color: colors.text, fontFamily: fonts.heading, fontSize: 50, lineHeight: 50, fontWeight: "900" },
   subtitle: { color: colors.muted, fontSize: 16, lineHeight: 24 },
   actions: { gap: 12, marginTop: 4 },
   panel: { gap: 12, padding: 16, borderRadius: 24, backgroundColor: colors.surface, borderColor: colors.borderStrong, borderWidth: 1 },
   highlight: { flexDirection: "row", gap: 12, alignItems: "flex-start" },
   highlightText: { flex: 1, gap: 2 },
-  highlightTitle: { color: colors.text, fontWeight: "900" },
+  highlightTitle: { color: colors.text, fontFamily: fonts.semibold, fontWeight: "900" },
   highlightBody: { color: colors.muted, lineHeight: 19, fontSize: 13 },
   disclaimer: { color: colors.muted, fontSize: 12, lineHeight: 17 }
 });

@@ -5,7 +5,7 @@ import { Snackbar, Text, TextInput } from "react-native-paper";
 import { AppButton } from "@/components/AppButton";
 import { BackButton } from "@/components/BackButton";
 import { ScreenContainer } from "@/components/ScreenContainer";
-import { colors } from "@/constants/theme";
+import { colors, fonts } from "@/constants/theme";
 import { signUp } from "@/lib/auth";
 
 function isValidEmail(value: string) {
@@ -56,9 +56,9 @@ export default function SignupScreen() {
       <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : undefined} style={styles.form}>
         <View style={styles.brand}>
           <Image source={require("../../assets/icon.png")} style={styles.logo} />
-          <Text style={styles.kicker}>Verified club membership</Text>
-          <Text style={styles.title}>Create your account</Text>
-          <Text style={styles.subtitle}>Use an email and password. Your QU Student ID is collected on the next step for officer verification.</Text>
+          <Text style={styles.kicker}>QU Poker membership</Text>
+          <Text style={styles.title}>Join the club</Text>
+          <Text style={styles.subtitle}>Create a member login for check-ins, points, tournament entries, and rewards.</Text>
         </View>
         <View style={styles.panel}>
           <TextInput label="Full name" value={fullName} onChangeText={setFullName} mode="outlined" textContentType="name" />
@@ -79,8 +79,8 @@ const styles = StyleSheet.create({
   form: { gap: 18, flex: 1, justifyContent: "center" },
   brand: { gap: 8 },
   logo: { width: 72, height: 72, borderRadius: 18 },
-  kicker: { color: colors.gold, fontSize: 12, fontWeight: "900", textTransform: "uppercase" },
-  title: { color: colors.text, fontSize: 36, lineHeight: 40, fontWeight: "900" },
+  kicker: { color: colors.gold, fontFamily: fonts.semibold, fontSize: 12, fontWeight: "900", textTransform: "uppercase" },
+  title: { color: colors.text, fontFamily: fonts.heading, fontSize: 54, lineHeight: 54, fontWeight: "900" },
   subtitle: { color: colors.muted, lineHeight: 22 },
   panel: { gap: 12, padding: 16, borderRadius: 22, backgroundColor: colors.surface, borderColor: colors.border, borderWidth: 1 },
   passwordHelp: { color: colors.muted, fontSize: 12, fontWeight: "700" }

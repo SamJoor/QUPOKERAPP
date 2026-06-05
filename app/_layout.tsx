@@ -2,6 +2,10 @@ import { Stack } from "expo-router";
 import { PaperProvider } from "react-native-paper";
 import { StatusBar } from "expo-status-bar";
 import {
+  BarlowCondensed_600SemiBold,
+  BarlowCondensed_700Bold
+} from "@expo-google-fonts/barlow-condensed";
+import {
   Sora_400Regular,
   Sora_500Medium,
   Sora_600SemiBold,
@@ -13,6 +17,8 @@ import { theme } from "@/constants/theme";
 
 export default function RootLayout() {
   const [fontsLoaded] = useFonts({
+    BarlowCondensed_600SemiBold,
+    BarlowCondensed_700Bold,
     Sora_400Regular,
     Sora_500Medium,
     Sora_600SemiBold,
