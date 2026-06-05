@@ -1,9 +1,29 @@
 import { Stack } from "expo-router";
 import { PaperProvider } from "react-native-paper";
 import { StatusBar } from "expo-status-bar";
+import {
+  Sora_400Regular,
+  Sora_500Medium,
+  Sora_600SemiBold,
+  Sora_700Bold,
+  Sora_800ExtraBold,
+  useFonts
+} from "@expo-google-fonts/sora";
 import { theme } from "@/constants/theme";
 
 export default function RootLayout() {
+  const [fontsLoaded] = useFonts({
+    Sora_400Regular,
+    Sora_500Medium,
+    Sora_600SemiBold,
+    Sora_700Bold,
+    Sora_800ExtraBold
+  });
+
+  if (!fontsLoaded) {
+    return null;
+  }
+
   return (
     <PaperProvider theme={theme}>
       <StatusBar style="light" />

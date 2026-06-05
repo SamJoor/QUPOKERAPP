@@ -22,7 +22,7 @@ export default function TabLayout() {
         headerShown: false,
         tabBarActiveTintColor: colors.green,
         tabBarInactiveTintColor: colors.muted,
-        tabBarStyle: { backgroundColor: "#081512", borderTopColor: colors.border, height: 84, paddingTop: 8 }
+        tabBarStyle: { backgroundColor: colors.backgroundAlt, borderTopColor: colors.border, height: 84, paddingTop: 8 }
       }}
     >
       <Tabs.Screen name="tournaments" options={{ title: "Tourneys", tabBarIcon: ({ color }) => <MaterialCommunityIcons name="trophy-outline" size={24} color={color} /> }} />

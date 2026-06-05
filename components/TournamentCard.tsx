@@ -1,7 +1,7 @@
 import { Pressable, StyleSheet, View } from "react-native";
 import { Text } from "react-native-paper";
 import { PointsPill } from "@/components/PointsPill";
-import { colors } from "@/constants/theme";
+import { colors, fonts } from "@/constants/theme";
 import { TournamentOverview } from "@/lib/tournaments";
 
 const statusTone: Record<TournamentOverview["status"], string> = {
@@ -40,20 +40,20 @@ export function TournamentCard({ tournament, onPress, featured = false }: { tour
 }
 
 const styles = StyleSheet.create({
-  card: { gap: 10, padding: 16, borderRadius: 20, backgroundColor: colors.surface, borderColor: colors.border, borderWidth: 1 },
-  featured: { borderColor: colors.green, backgroundColor: colors.greenSoft },
+  card: { gap: 10, padding: 16, borderRadius: 14, backgroundColor: colors.surface, borderColor: colors.border, borderWidth: 1, borderLeftColor: colors.gold, borderLeftWidth: 3 },
+  featured: { borderColor: colors.green, backgroundColor: colors.greenSoft, borderLeftColor: colors.green },
   pressed: { opacity: 0.78 },
   topRow: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", gap: 10 },
-  status: { fontWeight: "900", fontSize: 12 },
-  free: { color: colors.green, fontWeight: "900", fontSize: 12 },
-  name: { color: colors.text, fontSize: 19, fontWeight: "900", lineHeight: 24 },
-  featuredName: { color: colors.text, fontSize: 25, fontWeight: "900", lineHeight: 30 },
-  meta: { color: colors.gold, fontWeight: "800" },
+  status: { fontFamily: fonts.bold, fontWeight: "900", fontSize: 12 },
+  free: { color: colors.green, fontFamily: fonts.bold, fontWeight: "900", fontSize: 12 },
+  name: { color: colors.text, fontFamily: fonts.bold, fontSize: 19, fontWeight: "900", lineHeight: 24 },
+  featuredName: { color: colors.text, fontFamily: fonts.extraBold, fontSize: 25, fontWeight: "900", lineHeight: 30 },
+  meta: { color: colors.gold, fontFamily: fonts.semibold, fontWeight: "800", fontSize: 12 },
   body: { color: colors.muted, lineHeight: 20 },
   capacityHeader: { flexDirection: "row", justifyContent: "space-between", gap: 10 },
-  capacityText: { color: colors.muted, fontSize: 12, fontWeight: "800" },
+  capacityText: { color: colors.muted, fontFamily: fonts.semibold, fontSize: 12, fontWeight: "800" },
   capacityTrack: { height: 8, borderRadius: 99, backgroundColor: colors.background, overflow: "hidden" },
   capacityFill: { height: "100%", borderRadius: 99, backgroundColor: colors.green },
   prizeRow: { flexDirection: "row", flexWrap: "wrap", gap: 8 },
-  prize: { color: colors.gold, fontWeight: "900", fontSize: 12 }
+  prize: { color: colors.gold, fontFamily: fonts.bold, fontWeight: "900", fontSize: 12 }
 });

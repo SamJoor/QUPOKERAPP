@@ -1,7 +1,7 @@
 import { ReactNode } from "react";
 import { StyleSheet } from "react-native";
 import { Button } from "react-native-paper";
-import { colors } from "@/constants/theme";
+import { colors, fonts } from "@/constants/theme";
 
 export function AppButton({
   children,
@@ -34,8 +34,8 @@ export function AppButton({
 }
 
 const styles = StyleSheet.create({
-  button: { borderRadius: 16 },
+  button: { borderRadius: 12 },
   outlined: { borderColor: colors.border },
   content: { minHeight: 50 },
-  label: { fontWeight: "800", letterSpacing: 0 }
+  label: { fontFamily: fonts.bold, fontWeight: "800", letterSpacing: 0 }
 });
