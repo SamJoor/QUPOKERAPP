@@ -18,8 +18,9 @@ Use this for the first exec-board QA demo.
 2. In App Store Connect, add the build to the internal TestFlight group.
 3. Confirm Supabase migrations `001` through `015` are applied.
 4. Run `supabase/smoke-test.sql`.
-5. If demo data is needed, run `supabase/seed/exec-board-test-data.sql`.
-6. Confirm at least one officer account has `profiles.role = 'admin'`.
+5. Run `supabase/demo-preflight.sql` and confirm the final summary row is all `true`.
+6. If demo data is needed, run `supabase/seed/exec-board-test-data.sql`.
+7. Confirm at least one officer account has `profiles.role = 'admin'`.
 
 ## Tester Message
 
