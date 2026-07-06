@@ -20,7 +20,8 @@ Use this for the first exec-board QA demo.
 4. Run `supabase/smoke-test.sql`.
 5. Run `supabase/demo-preflight.sql` and confirm the final summary row is all `true`.
 6. If demo data is needed, run `supabase/seed/exec-board-test-data.sql`.
-7. Confirm at least one officer account has `profiles.role = 'admin'`.
+7. If officer accounts need admin access, edit and run `supabase/admin-demo-setup.sql`.
+8. Confirm at least one officer account has `profiles.role = 'admin'`.
 
 ## Tester Message
 
