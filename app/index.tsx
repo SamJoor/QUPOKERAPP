@@ -10,7 +10,7 @@ import { LoadingState } from "@/components/StateViews";
 import { colors, disclaimer, fonts, shadows } from "@/constants/theme";
 import { getCurrentSession } from "@/lib/auth";
 
-const highlights: Array<[keyof typeof MaterialCommunityIcons.glyphMap, string, string]> = [
+const highlights: [keyof typeof MaterialCommunityIcons.glyphMap, string, string][] = [
   ["qrcode-scan", "Check in", "Scan at meetings and tournaments."],
   ["star-four-points", "Earn points", "Track lifetime and spendable club points."],
   ["trophy-outline", "Compete", "Register for friendly tournament nights."]

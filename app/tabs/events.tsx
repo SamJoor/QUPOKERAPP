@@ -1,6 +1,6 @@
 import { useCallback, useState } from "react";
 import { useFocusEffect } from "@react-navigation/native";
-import { SegmentedButtons, Text } from "react-native-paper";
+import { SegmentedButtons } from "react-native-paper";
 import { StyleSheet, View } from "react-native";
 import { QRScanner } from "@/components/QRScanner";
 import { LabHeader } from "@/components/DesignSystem";

@@ -1,11 +1,9 @@
 import { useEffect, useState } from "react";
-import { StyleSheet, View } from "react-native";
 import { router } from "expo-router";
-import { SegmentedButtons, Text } from "react-native-paper";
+import { SegmentedButtons } from "react-native-paper";
 import { LabHeader, PodiumStrip } from "@/components/DesignSystem";
 import { ScreenContainer } from "@/components/ScreenContainer";
 import { ErrorState, LoadingState } from "@/components/StateViews";
-import { colors, fonts } from "@/constants/theme";
 import { getAllTimeLeaderboard, getMonthlyLeaderboard } from "@/lib/leaderboard";
 import { LeaderboardEntry } from "@/lib/types";
 
@@ -42,6 +40,3 @@ export default function LeaderboardScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  title: { color: colors.text, fontFamily: fonts.heading, fontSize: 42, lineHeight: 44, fontWeight: "900" }
-});
