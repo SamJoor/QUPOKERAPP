@@ -1,6 +1,6 @@
 import { StyleSheet, View } from "react-native";
 import { Text } from "react-native-paper";
-import { colors } from "@/constants/theme";
+import { colors, fonts } from "@/constants/theme";
 import { GlassPanel } from "./GlassPanel";
 
 export function StatCard({ label, value, tone = "green" }: { label: string; value: string | number; tone?: "green" | "gold" | "blue" }) {

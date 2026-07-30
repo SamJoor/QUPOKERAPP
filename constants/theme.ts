@@ -7,8 +7,11 @@ export const colors = {
   surfaceSoft: "#151b24",
   surfaceGlow: "#10223a",
   surfaceElevated: "rgba(255,255,255,0.06)",
+  surfaceRaised: "#1b222d",
+  cardTop: "#17202c",
   border: "rgba(247,248,250,0.08)",
   borderSoft: "rgba(255,255,255,0.05)",
+  borderStrong: "rgba(247,248,250,0.16)",
   text: "#f7f8fa",
   muted: "#8f98a5",
   green: "#0c355f",
@@ -24,8 +27,39 @@ export const colors = {
   red: "#e25a5f",
   blue: "#6d9fd6",
   ink: "#050608",
+  navyInk: "#050608",
   cardBlack: "#080b10",
-  warning: "#ffaa4c"
+  warning: "#ffaa4c",
+  success: "#42d99a",
+  track: "#0a111a"
+};
+
+export const fonts = {
+  heading: "Barlow_800ExtraBold",
+  headingSemibold: "Barlow_700Bold",
+  regular: "Barlow_400Regular",
+  medium: "Barlow_500Medium",
+  semibold: "Barlow_600SemiBold",
+  bold: "Barlow_700Bold",
+  extraBold: "Barlow_800ExtraBold"
+};
+
+const fontConfig = {
+  displayLarge: { fontFamily: fonts.heading },
+  displayMedium: { fontFamily: fonts.heading },
+  displaySmall: { fontFamily: fonts.heading },
+  headlineLarge: { fontFamily: fonts.heading },
+  headlineMedium: { fontFamily: fonts.heading },
+  headlineSmall: { fontFamily: fonts.headingSemibold },
+  titleLarge: { fontFamily: fonts.headingSemibold },
+  titleMedium: { fontFamily: fonts.semibold },
+  titleSmall: { fontFamily: fonts.semibold },
+  labelLarge: { fontFamily: fonts.bold },
+  labelMedium: { fontFamily: fonts.semibold },
+  labelSmall: { fontFamily: fonts.semibold },
+  bodyLarge: { fontFamily: fonts.regular },
+  bodyMedium: { fontFamily: fonts.regular },
+  bodySmall: { fontFamily: fonts.regular }
 };
 
 export const spacing = {

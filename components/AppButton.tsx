@@ -1,7 +1,7 @@
 import { ReactNode } from "react";
 import { StyleSheet } from "react-native";
 import { Button } from "react-native-paper";
-import { colors, fonts, shadows } from "@/constants/theme";
+import { colors } from "@/constants/theme";
 
 export function AppButton({
   children,

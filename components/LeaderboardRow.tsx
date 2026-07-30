@@ -1,7 +1,7 @@
 import { Pressable, StyleSheet, View } from "react-native";
 import { Avatar, Text } from "react-native-paper";
 import { LeaderboardEntry } from "@/lib/types";
-import { colors } from "@/constants/theme";
+import { colors, fonts } from "@/constants/theme";
 import { GlassPanel } from "./GlassPanel";
 
 export function LeaderboardRow({ entry, onPress }: { entry: LeaderboardEntry; onPress?: () => void }) {

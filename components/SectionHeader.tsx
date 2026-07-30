@@ -1,6 +1,6 @@
 import { Pressable, StyleSheet, View } from "react-native";
 import { Text } from "react-native-paper";
-import { colors, fonts } from "@/constants/theme";
+import { colors } from "@/constants/theme";
 
 export function SectionHeader({ title, action, actionLabel, onAction }: { title: string; action?: string; actionLabel?: string; onAction?: () => void }) {
   const label = actionLabel ?? action;
