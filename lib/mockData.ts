@@ -2,16 +2,16 @@ import { ClubEvent, LeaderboardEntry, LedgerEntry, Profile, Reward, Tournament }
 
 export const demoProfile: Profile = {
   id: "demo-user",
-  full_name: "Alex Quinn",
+  full_name: "Sebastian Quinn",
   email: "alex@qu.edu",
   student_id: null,
   graduation_year: 2027,
   major: "Finance",
   avatar_url: null,
   role: "admin",
-  total_points: 420,
+  total_points: 520,
   lifetime_points: 520,
-  spendable_points: 420,
+  spendable_points: 520,
   created_at: new Date().toISOString(),
   updated_at: new Date().toISOString()
 };
@@ -79,7 +79,7 @@ export const demoRewards: Reward[] = [
 export const demoLeaderboard: LeaderboardEntry[] = [
   { user_id: "1", full_name: "Maya Chen", total_points: 820, rank: 1 },
   { user_id: "2", full_name: "Jordan Lee", total_points: 690, rank: 2 },
-  { user_id: "demo-user", full_name: "Alex Quinn", total_points: 420, rank: 3 },
+  { user_id: "demo-user", full_name: "Sebastian Quinn", total_points: 520, rank: 3 },
   { user_id: "4", full_name: "Sam Patel", total_points: 380, rank: 4 },
   { user_id: "5", full_name: "Nia Brooks", total_points: 330, rank: 5 }
 ];

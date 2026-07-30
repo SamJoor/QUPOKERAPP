@@ -25,7 +25,7 @@ export function AppButton({
       contentStyle={styles.content}
       labelStyle={styles.label}
       buttonColor={mode === "contained" ? colors.green : undefined}
-      textColor={mode === "contained" ? "#041226" : colors.green}
+      textColor={mode === "contained" ? colors.text : colors.green}
       style={[styles.button, mode === "outlined" && styles.outlined]}
     >
       {children}
@@ -34,8 +34,14 @@ export function AppButton({
 }
 
 const styles = StyleSheet.create({
-  button: { borderRadius: 16 },
-  outlined: { borderColor: colors.border },
+  button: {
+    borderRadius: 16,
+    shadowColor: colors.green,
+    shadowOpacity: 0.16,
+    shadowRadius: 14,
+    shadowOffset: { width: 0, height: 8 }
+  },
+  outlined: { borderColor: colors.border, backgroundColor: "rgba(255,255,255,0.03)" },
   content: { minHeight: 50 },
   label: { fontWeight: "800", letterSpacing: 0 }
 });

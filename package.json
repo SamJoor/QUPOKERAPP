@@ -16,11 +16,13 @@
     "@react-native-async-storage/async-storage": "2.2.0",
     "@react-navigation/native": "^7.0.14",
     "@supabase/supabase-js": "^2.45.4",
-    "expo": "~54.0.0",
+    "expo": "~54.0.35",
+    "expo-blur": "~15.0.8",
     "expo-camera": "~17.0.10",
     "expo-image-picker": "~17.0.11",
+    "expo-linear-gradient": "~15.0.8",
     "expo-linking": "~8.0.12",
-    "expo-router": "~6.0.23",
+    "expo-router": "~6.0.24",
     "expo-secure-store": "~15.0.8",
     "expo-splash-screen": "~31.0.13",
     "expo-status-bar": "~3.0.9",
@@ -38,8 +40,10 @@
   "devDependencies": {
     "@babel/core": "^7.25.2",
     "@types/react": "~19.1.10",
+    "babel-preset-expo": "~54.0.10",
     "eslint": "^8.57.0",
     "eslint-config-expo": "~10.0.0",
+    "sharp": "^0.35.3",
     "typescript": "~5.9.2"
   }
 }
