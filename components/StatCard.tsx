@@ -30,6 +30,7 @@ const styles = StyleSheet.create({
     borderRadius: 999,
     opacity: 0.95
   },
-  label: { color: colors.muted, fontWeight: "700" },
-  value: { fontSize: 28, fontWeight: "900" }
+  dot: { width: 12, height: 12, borderRadius: 99, alignSelf: "flex-end" },
+  label: { color: colors.muted, fontFamily: fonts.semibold, fontWeight: "700", fontSize: 12, textTransform: "uppercase" },
+  value: { fontFamily: fonts.extraBold, fontSize: 32, fontWeight: "900" }
 });

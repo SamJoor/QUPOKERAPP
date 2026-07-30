@@ -5,6 +5,7 @@ import * as ImagePicker from "expo-image-picker";
 import { Avatar, Snackbar, Text, TextInput } from "react-native-paper";
 import { AppButton } from "@/components/AppButton";
 import { BackButton } from "@/components/BackButton";
+import { LabHeader, LabPanel, MissionTile } from "@/components/DesignSystem";
 import { ScreenContainer } from "@/components/ScreenContainer";
 import { SectionHeader } from "@/components/SectionHeader";
 import { StatCard } from "@/components/StatCard";
@@ -102,16 +103,14 @@ export default function ProfileScreen() {
   return (
     <ScreenContainer>
       <BackButton fallback="/tabs/dashboard" />
-      {avatarUrl ? (
-        <Avatar.Image size={72} source={{ uri: avatarUrl }} style={styles.avatar} />
-      ) : (
-        <Avatar.Text size={72} label={profile.full_name.slice(0, 2).toUpperCase()} style={styles.avatar} labelStyle={styles.avatarText} />
-      )}
-      <Text style={styles.name}>{profile.full_name}</Text>
-      <Text style={styles.email}>{profile.email}</Text>
-      <AppButton mode="outlined" icon="camera-outline" onPress={chooseAvatar} disabled={uploadingAvatar}>
-        {uploadingAvatar ? "Updating Photo..." : "Update Profile Photo"}
-      </AppButton>
+      <LabHeader eyebrow="Member profile" title={profile.full_name.split(" ")[0] || "Profile"} subtitle={profile.email} icon="account-star" right={
+        avatarUrl ? (
+          <Avatar.Image size={58} source={{ uri: avatarUrl }} style={styles.avatar} />
+        ) : (
+          <Avatar.Text size={58} label={profile.full_name.slice(0, 2).toUpperCase()} style={styles.avatar} labelStyle={styles.avatarText} />
+        )
+      } />
+      <MissionTile icon="camera-outline" title={uploadingAvatar ? "Updating photo..." : "Profile photo"} body="Add a face to your leaderboard and member profile." badge="Edit" onPress={chooseAvatar} />
       <View style={styles.stats}>
         <StatCard label="Lifetime points" value={profile.lifetime_points ?? profile.total_points} tone="gold" />
         <StatCard label="Spendable points" value={profile.spendable_points ?? profile.total_points} />
@@ -126,11 +125,11 @@ export default function ProfileScreen() {
           <AppButton mode="outlined" onPress={() => setEditing(false)}>Cancel</AppButton>
         </View>
       ) : (
-        <>
+        <LabPanel>
           <Text style={styles.copy}>Major: {profile.major ?? "Not set"}</Text>
           <Text style={styles.copy}>Graduation year: {profile.graduation_year ?? "Not set"}</Text>
           <AppButton mode="outlined" icon="account-edit-outline" onPress={() => setEditing(true)}>Edit Profile</AppButton>
-        </>
+        </LabPanel>
       )}
       <SectionHeader title="Point History" />
       {history.slice(0, 8).map((entry) => (

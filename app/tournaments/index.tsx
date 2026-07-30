@@ -4,10 +4,11 @@ import { router } from "expo-router";
 import { SegmentedButtons, Text } from "react-native-paper";
 import { AppButton } from "@/components/AppButton";
 import { BackButton } from "@/components/BackButton";
+import { LabHeader } from "@/components/DesignSystem";
 import { ScreenContainer } from "@/components/ScreenContainer";
 import { EmptyState, ErrorState, LoadingState } from "@/components/StateViews";
 import { TournamentCard } from "@/components/TournamentCard";
-import { colors, disclaimer } from "@/constants/theme";
+import { colors, disclaimer, fonts } from "@/constants/theme";
 import { getTournamentOverview, TournamentOverview } from "@/lib/tournaments";
 
 type Filter = "open" | "upcoming" | "results" | "all";
@@ -48,9 +49,9 @@ export default function TournamentsScreen() {
   return (
     <ScreenContainer>
       <BackButton fallback="/tabs/dashboard" />
-      <Text style={styles.title}>Tournament Center</Text>
-      <Text style={styles.subtitle}>Friendly non-gambling competitions for practice, recognition, and club engagement.</Text>
-      <AppButton mode="outlined" icon="history" onPress={() => router.push("/tournaments/past")}>Past Tournaments</AppButton>
+      <LabHeader eyebrow="Friendly competition" title="Tournament Center" subtitle="Register, get your table, and track placements after club nights." icon="trophy-outline" right={
+        <AppButton mode="outlined" icon="history" onPress={() => router.push("/tournaments/past")}>Past Tournaments</AppButton>
+      } />
       {loading ? <LoadingState label="Loading tournaments..." /> : error ? <ErrorState message={error} onRetry={load} /> : (
         <>
           {featured ? (
@@ -80,9 +81,7 @@ export default function TournamentsScreen() {
 }
 
 const styles = StyleSheet.create({
-  title: { color: colors.text, fontSize: 32, fontWeight: "900" },
-  subtitle: { color: colors.muted, lineHeight: 21 },
   section: { gap: 10 },
-  sectionTitle: { color: colors.text, fontSize: 18, fontWeight: "900" },
+  sectionTitle: { color: colors.text, fontFamily: fonts.bold, fontSize: 18, fontWeight: "900" },
   disclaimer: { color: colors.muted, fontSize: 12, lineHeight: 17 }
 });

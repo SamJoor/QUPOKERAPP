@@ -1,4 +1,4 @@
-import { MD3DarkTheme } from "react-native-paper";
+import { configureFonts, MD3DarkTheme } from "react-native-paper";
 
 export const colors = {
   background: "#020407",
@@ -57,6 +57,7 @@ export const typography = {
 export const theme = {
   ...MD3DarkTheme,
   roundness: 18,
+  fonts: configureFonts({ config: fontConfig }),
   colors: {
     ...MD3DarkTheme.colors,
     primary: colors.green,
@@ -67,7 +68,29 @@ export const theme = {
     outline: colors.border,
     onSurface: colors.text,
     onSurfaceVariant: colors.muted,
-    error: colors.red
+    error: colors.red,
+    elevation: {
+      ...MD3DarkTheme.colors.elevation,
+      level1: colors.surface,
+      level2: colors.surfaceRaised
+    }
+  }
+};
+
+export const shadows = {
+  card: {
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.24,
+    shadowRadius: 14,
+    elevation: 5
+  },
+  lift: {
+    shadowColor: colors.gold,
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.18,
+    shadowRadius: 12,
+    elevation: 4
   }
 };
 

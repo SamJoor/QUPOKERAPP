@@ -1,15 +1,20 @@
 import { useEffect, useState } from "react";
-import { StyleSheet, View } from "react-native";
+import { Image, StyleSheet, View } from "react-native";
 import { router } from "expo-router";
 import { Text } from "react-native-paper";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { AppButton } from "@/components/AppButton";
+import { FormShell, MissionTile } from "@/components/DesignSystem";
 import { ScreenContainer } from "@/components/ScreenContainer";
 import { LoadingState } from "@/components/StateViews";
-import { colors, disclaimer } from "@/constants/theme";
+import { colors, disclaimer, fonts, shadows } from "@/constants/theme";
 import { getCurrentSession } from "@/lib/auth";
 
-const features = ["QR attendance", "Club points", "Rewards", "Leaderboards", "Strategy trainer", "Events and tournaments"];
+const highlights: [keyof typeof MaterialCommunityIcons.glyphMap, string, string][] = [
+  ["qrcode-scan", "Check in", "Scan at meetings and tournaments."],
+  ["star-four-points", "Earn points", "Track lifetime and spendable club points."],
+  ["trophy-outline", "Compete", "Register for friendly tournament nights."]
+];
 
 export default function WelcomeScreen() {
   const [checkingSession, setCheckingSession] = useState(true);
@@ -34,15 +39,14 @@ export default function WelcomeScreen() {
 
   return (
     <ScreenContainer>
-      <View style={styles.hero}>
-        <View style={styles.mark}>
-          <MaterialCommunityIcons name="cards-playing-outline" size={46} color={colors.green} />
+      <View style={styles.topBadge}>
+        <Image source={require("../assets/icon.png")} style={styles.logo} />
+        <View>
+          <Text style={styles.club}>QU Poker</Text>
+          <Text style={styles.clubSub}>Strategy Club</Text>
         </View>
-        <Text style={styles.club}>QU Poker & Strategy Club</Text>
-        <Text style={styles.title}>Build the smartest poker club on campus.</Text>
-        <Text style={styles.subtitle}>
-          Track attendance, earn club points, join friendly tournaments, and sharpen your strategy — all in one non-gambling club app.
-        </Text>
+      </View>
+      <FormShell title="Level up with the club." subtitle="Events, check-ins, rewards, tournaments, and strategy practice in one non-gambling member app.">
         <View style={styles.actions}>
           <AppButton icon="account-plus-outline" onPress={() => router.push("/auth/signup")}>
             Join the Club
@@ -51,13 +55,10 @@ export default function WelcomeScreen() {
             Log In
           </AppButton>
         </View>
-      </View>
-      <View style={styles.grid}>
-        {features.map((feature) => (
-          <View key={feature} style={styles.feature}>
-            <MaterialCommunityIcons name="check-circle-outline" size={20} color={colors.green} />
-            <Text style={styles.featureText}>{feature}</Text>
-          </View>
+      </FormShell>
+      <View style={styles.panel}>
+        {highlights.map(([icon, title, body], index) => (
+          <MissionTile key={title} icon={icon} title={title} body={body} badge={`0${index + 1}`} gold={index === 1} />
         ))}
       </View>
       <Text style={styles.disclaimer}>{disclaimer}</Text>
@@ -66,14 +67,11 @@ export default function WelcomeScreen() {
 }
 
 const styles = StyleSheet.create({
-  hero: { gap: 18, paddingTop: 18 },
-  mark: { width: 76, height: 76, borderRadius: 24, backgroundColor: colors.greenSoft, alignItems: "center", justifyContent: "center" },
-  club: { color: colors.gold, fontWeight: "900" },
-  title: { color: colors.text, fontSize: 42, lineHeight: 46, fontWeight: "900" },
-  subtitle: { color: colors.muted, fontSize: 16, lineHeight: 24 },
+  topBadge: { flexDirection: "row", alignItems: "center", gap: 12, paddingTop: 18 },
+  logo: { width: 72, height: 72, borderRadius: 22 },
+  club: { color: colors.text, fontFamily: fonts.headingSemibold, fontWeight: "900", fontSize: 28, lineHeight: 30 },
+  clubSub: { color: colors.gold, fontFamily: fonts.semibold, fontWeight: "900", fontSize: 13, textTransform: "uppercase" },
   actions: { gap: 12, marginTop: 4 },
-  grid: { flexDirection: "row", flexWrap: "wrap", gap: 10 },
-  feature: { width: "48%", minHeight: 72, borderRadius: 18, padding: 12, backgroundColor: colors.surface, borderColor: colors.border, borderWidth: 1, gap: 8 },
-  featureText: { color: colors.text, fontWeight: "800" },
+  panel: { gap: 12, padding: 16, borderRadius: 30, backgroundColor: colors.surfaceRaised, borderColor: colors.borderStrong, borderWidth: 1.5, ...shadows.card },
   disclaimer: { color: colors.muted, fontSize: 12, lineHeight: 17 }
 });

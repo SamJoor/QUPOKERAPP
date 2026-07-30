@@ -1,10 +1,11 @@
 import { useEffect, useState } from "react";
+import { StyleSheet, View } from "react-native";
 import { Snackbar, Text } from "react-native-paper";
 import { ConfirmModal } from "@/components/ConfirmModal";
-import { RewardCard } from "@/components/RewardCard";
+import { CollectibleFrame, LabHeader } from "@/components/DesignSystem";
 import { ScreenContainer } from "@/components/ScreenContainer";
-import { LoadingState } from "@/components/StateViews";
-import { colors } from "@/constants/theme";
+import { EmptyState, LoadingState } from "@/components/StateViews";
+import { colors, fonts } from "@/constants/theme";
 import { getCurrentProfile } from "@/lib/auth";
 import { getRewards, redeemReward } from "@/lib/rewards";
 import { Profile, Reward } from "@/lib/types";
@@ -43,9 +44,17 @@ export default function RewardsScreen() {
 
   return (
     <ScreenContainer>
-      <Text style={{ color: colors.text, fontSize: 32, fontWeight: "900" }}>Rewards</Text>
-      <Text style={{ color: colors.gold, fontWeight: "900" }}>Spendable balance: {profile?.spendable_points ?? profile?.total_points ?? 0} pts</Text>
-      {loading ? <LoadingState /> : rewards.map((reward) => <RewardCard key={reward.id} reward={reward} onRedeem={() => setSelected(reward)} />)}
+      <LabHeader eyebrow="Club perks" title="Rewards" subtitle="Collect member perks using spendable club points." icon="gift-outline" right={
+        <View style={styles.balancePill}>
+          <Text style={styles.balanceLabel}>Spendable</Text>
+          <Text style={styles.balanceValue}>{profile?.spendable_points ?? profile?.total_points ?? 0} pts</Text>
+        </View>
+      } />
+      {loading ? <LoadingState /> : rewards.length ? rewards.map((reward) => (
+        <CollectibleFrame key={reward.id} title={reward.title} subtitle={reward.description} cost={reward.cost_points} type={reward.reward_type} onPress={() => setSelected(reward)} />
+      )) : (
+        <EmptyState title="No rewards posted" body="Officer-approved perks such as tournament entries, merch, and recognition will appear here." />
+      )}
       <ConfirmModal
         visible={Boolean(selected)}
         title="Redeem reward?"
@@ -58,3 +67,9 @@ export default function RewardsScreen() {
     </ScreenContainer>
   );
 }
+
+const styles = StyleSheet.create({
+  balancePill: { alignSelf: "flex-start", flexDirection: "row", gap: 8, alignItems: "center", borderRadius: 999, backgroundColor: colors.goldSoft, borderColor: colors.gold, borderWidth: 1.5, paddingHorizontal: 12, paddingVertical: 8 },
+  balanceLabel: { color: colors.gold, fontFamily: fonts.bold, fontWeight: "900", fontSize: 12, textTransform: "uppercase" },
+  balanceValue: { color: colors.text, fontFamily: fonts.extraBold, fontWeight: "900" }
+});

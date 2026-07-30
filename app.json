@@ -15,10 +15,6 @@
     "ios": {
       "supportsTablet": false,
       "bundleIdentifier": "com.qupoker.strategyclub",
-      "associatedDomains": [
-        "applinks:qupoker.app",
-        "applinks:qupoker.app"
-      ],
       "infoPlist": {
         "NSCameraUsageDescription": "Camera access is used to scan club event QR codes for attendance check-in.",
         "NSPhotoLibraryUsageDescription": "Photo library access is used only when you choose a profile photo.",
@@ -32,8 +28,7 @@
         "backgroundColor": "#041126"
       },
       "permissions": [
-        "android.permission.CAMERA",
-        "android.permission.RECORD_AUDIO"
+        "android.permission.CAMERA"
       ]
     },
     "plugins": [
@@ -58,7 +53,8 @@
         {
           "photosPermission": "Photo library access is used only when you choose a profile photo."
         }
-      ]
+      ],
+      "expo-font"
     ],
     "extra": {
       "supportUrl": "https://qupoker.app/support",
@@ -67,9 +63,9 @@
         "origin": false
       },
       "eas": {
-        "projectId": "ff295137-2a7d-4561-a7f5-29c2ee3486fa"
+        "projectId": "7f59cfae-ff54-468d-b43b-9c618cd3782b"
       }
     },
-    "owner": "jamjamjam09"
+    "owner": "samjoor50"
   }
 }

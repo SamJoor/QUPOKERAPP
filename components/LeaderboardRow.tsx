@@ -24,11 +24,13 @@ const styles = StyleSheet.create({
   pressable: { borderRadius: 22 },
   row: { flexDirection: "row", alignItems: "center", gap: 12, padding: 12 },
   pressed: { opacity: 0.78 },
-  rank: { width: 34, color: colors.gold, fontWeight: "900" },
+  rankBadge: { width: 42, height: 42, borderRadius: 999, alignItems: "center", justifyContent: "center", backgroundColor: colors.green },
+  topRank: { backgroundColor: colors.gold },
+  rank: { color: colors.navyInk, fontFamily: fonts.extraBold, fontWeight: "900" },
   avatar: { backgroundColor: colors.greenSoft },
   avatarText: { color: colors.green, fontWeight: "900" },
   info: { flex: 1, gap: 4 },
-  name: { color: colors.text, fontWeight: "800" },
-  meta: { color: colors.muted, fontSize: 12 },
-  points: { color: colors.gold, fontWeight: "900", fontSize: 18 }
+  name: { color: colors.text, fontFamily: fonts.bold, fontWeight: "900" },
+  meta: { color: colors.muted, fontFamily: fonts.regular, fontSize: 12 },
+  points: { color: colors.gold, fontFamily: fonts.extraBold, fontWeight: "900", fontSize: 18 }
 });

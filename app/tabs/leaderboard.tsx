@@ -1,11 +1,9 @@
 import { useEffect, useState } from "react";
-import { StyleSheet } from "react-native";
 import { router } from "expo-router";
-import { SegmentedButtons, Text } from "react-native-paper";
-import { LeaderboardRow } from "@/components/LeaderboardRow";
+import { SegmentedButtons } from "react-native-paper";
+import { LabHeader, PodiumStrip } from "@/components/DesignSystem";
 import { ScreenContainer } from "@/components/ScreenContainer";
 import { ErrorState, LoadingState } from "@/components/StateViews";
-import { colors } from "@/constants/theme";
 import { getAllTimeLeaderboard, getMonthlyLeaderboard } from "@/lib/leaderboard";
 import { LeaderboardEntry } from "@/lib/types";
 
@@ -26,7 +24,7 @@ export default function LeaderboardScreen() {
 
   return (
     <ScreenContainer>
-      <Text style={styles.title}>Leaderboard</Text>
+      <LabHeader eyebrow="Club momentum" title="Leaderboard" subtitle="Track attendance, practice, events, and tournament engagement." icon="podium-gold" />
       <SegmentedButtons
         value={mode}
         onValueChange={setMode}
@@ -36,13 +34,9 @@ export default function LeaderboardScreen() {
         ]}
       />
       {loading ? <LoadingState /> : error ? <ErrorState message={error} /> : rows.map((entry) => (
-        <LeaderboardRow key={entry.user_id} entry={entry} onPress={() => router.push(`/members/${entry.user_id}`)} />
+        <PodiumStrip key={entry.user_id} rank={entry.rank} name={entry.full_name} points={entry.total_points} onPress={() => router.push(`/members/${entry.user_id}`)} />
       ))}
     </ScreenContainer>
   );
 }
 
-const styles = StyleSheet.create({
-  title: { color: colors.text, fontSize: 32, fontWeight: "900" },
-  subtitle: { color: colors.muted, lineHeight: 20 }
-});

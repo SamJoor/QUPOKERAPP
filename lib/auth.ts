@@ -1,3 +1,4 @@
+import * as Linking from "expo-linking";
 import { supabase, hasSupabaseConfig } from "./supabase";
 import { demoProfile } from "./mockData";
 import { Profile } from "./types";
@@ -20,15 +21,16 @@ export async function getCurrentProfile(): Promise<Profile | null> {
   if (!hasSupabaseConfig) return demoProfile;
   const user = await getCurrentUser();
   if (!user) return null;
-  const { data, error } = await supabase.from("profiles").select("*").eq("id", user.id).single();
+  const { data, error } = await supabase.from("profiles").select("*").eq("id", user.id).maybeSingle();
   if (error) throw error;
   return data;
 }
 
 export async function signIn(email: string, password: string) {
   if (!hasSupabaseConfig) return;
-  const { error } = await supabase.auth.signInWithPassword({ email, password });
+  const { data, error } = await supabase.auth.signInWithPassword({ email, password });
   if (error) throw error;
+  return data;
 }
 
 export async function signUp(email: string, password: string, fullName: string) {
@@ -44,12 +46,52 @@ export async function signUp(email: string, password: string, fullName: string) 
     options: { data: { full_name: fullName } }
   });
   if (error) throw error;
+  if (data.session?.user) {
+    await upsertProfile({
+      id: data.session.user.id,
+      email: data.session.user.email ?? email,
+      full_name: fullName
+    });
+  }
   return { user: data.user, session: data.session };
 }
 
 export async function resetPassword(email: string) {
   if (!hasSupabaseConfig) return;
-  const { error } = await supabase.auth.resetPasswordForEmail(email);
+  const { error } = await supabase.auth.resetPasswordForEmail(email, {
+    redirectTo: Linking.createURL("/auth/update-password")
+  });
+  if (error) throw error;
+}
+
+export async function establishPasswordRecoverySession(url: string | null) {
+  if (!hasSupabaseConfig || !url) return;
+
+  const parsed = new URL(url);
+  const hashParams = new URLSearchParams(parsed.hash.replace(/^#/, ""));
+  const queryParams = parsed.searchParams;
+  const accessToken = hashParams.get("access_token") ?? queryParams.get("access_token");
+  const refreshToken = hashParams.get("refresh_token") ?? queryParams.get("refresh_token");
+  const code = queryParams.get("code") ?? hashParams.get("code");
+
+  if (accessToken && refreshToken) {
+    const { error } = await supabase.auth.setSession({
+      access_token: accessToken,
+      refresh_token: refreshToken
+    });
+    if (error) throw error;
+    return;
+  }
+
+  if (code) {
+    const { error } = await supabase.auth.exchangeCodeForSession(code);
+    if (error) throw error;
+  }
+}
+
+export async function updatePassword(password: string) {
+  if (!hasSupabaseConfig) return;
+  const { error } = await supabase.auth.updateUser({ password });
   if (error) throw error;
 }
 

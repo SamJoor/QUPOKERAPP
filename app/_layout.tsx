@@ -1,9 +1,29 @@
 import { Stack } from "expo-router";
 import { PaperProvider } from "react-native-paper";
 import { StatusBar } from "expo-status-bar";
+import {
+  Barlow_400Regular,
+  Barlow_500Medium,
+  Barlow_600SemiBold,
+  Barlow_700Bold,
+  Barlow_800ExtraBold,
+  useFonts
+} from "@expo-google-fonts/barlow";
 import { theme } from "@/constants/theme";
 
 export default function RootLayout() {
+  const [fontsLoaded] = useFonts({
+    Barlow_400Regular,
+    Barlow_500Medium,
+    Barlow_600SemiBold,
+    Barlow_700Bold,
+    Barlow_800ExtraBold
+  });
+
+  if (!fontsLoaded) {
+    return null;
+  }
+
   return (
     <PaperProvider theme={theme}>
       <StatusBar style="light" />
@@ -12,6 +32,7 @@ export default function RootLayout() {
         <Stack.Screen name="auth/login" options={{ gestureEnabled: true }} />
         <Stack.Screen name="auth/signup" options={{ gestureEnabled: true }} />
         <Stack.Screen name="auth/forgot-password" options={{ gestureEnabled: true }} />
+        <Stack.Screen name="auth/update-password" options={{ gestureEnabled: false }} />
         <Stack.Screen name="onboarding/complete-profile" options={{ gestureEnabled: false }} />
         <Stack.Screen name="tabs" options={{ gestureEnabled: false }} />
         <Stack.Screen name="events/[id]" />

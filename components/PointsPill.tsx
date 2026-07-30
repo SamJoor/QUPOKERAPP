@@ -1,6 +1,6 @@
 import { StyleSheet, View } from "react-native";
 import { Text } from "react-native-paper";
-import { colors } from "@/constants/theme";
+import { colors, fonts } from "@/constants/theme";
 
 export function PointsPill({ points }: { points: number }) {
   return (
@@ -11,6 +11,6 @@ export function PointsPill({ points }: { points: number }) {
 }
 
 const styles = StyleSheet.create({
-  pill: { paddingHorizontal: 12, paddingVertical: 7, borderRadius: 999, backgroundColor: colors.goldSoft, borderColor: colors.gold, borderWidth: 1 },
-  text: { color: colors.gold, fontWeight: "900" }
+  pill: { paddingHorizontal: 13, paddingVertical: 8, borderRadius: 999, backgroundColor: colors.goldSoft, borderColor: colors.gold, borderWidth: 1.5 },
+  text: { color: colors.gold, fontFamily: fonts.bold, fontWeight: "900", fontSize: 12 }
 });
