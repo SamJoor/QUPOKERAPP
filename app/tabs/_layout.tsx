@@ -2,7 +2,7 @@ import { Tabs } from "expo-router";
 import { BlurView } from "expo-blur";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { Dimensions, StyleSheet, View } from "react-native";
-import { colors, radii } from "@/constants/theme";
+import { colors, radii, tabBar } from "@/constants/theme";
 import { LoadingState } from "@/components/StateViews";
 import { ScreenContainer } from "@/components/ScreenContainer";
 import { VectorPlayersMark, VectorTicketMark } from "@/components/VectorMotifs";
@@ -85,10 +85,10 @@ export default function TabLayout() {
 const styles = StyleSheet.create({
   tabBar: {
     position: "absolute",
-    height: 72,
+    height: tabBar.height,
     width: tabBarWidth,
     left: "50%",
-    bottom: 14,
+    bottom: tabBar.bottomInset,
     transform: [{ translateX: -tabBarWidth / 2 }],
     paddingHorizontal: 10,
     paddingTop: 8,

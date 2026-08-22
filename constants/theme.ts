@@ -73,6 +73,14 @@ export const spacing = {
   xxxl: 40
 };
 
+/** Floating tab bar geometry. Screens must leave `tabBar.clearance` of bottom padding
+ * so the absolutely-positioned bar never sits on top of their last row. */
+export const tabBar = {
+  height: 72,
+  bottomInset: 14,
+  clearance: 72 + 14 + 16
+};
+
 export const radii = {
   sm: 12,
   md: 18,
