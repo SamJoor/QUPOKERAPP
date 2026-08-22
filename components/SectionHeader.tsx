@@ -10,7 +10,7 @@ export function SectionHeader({ title, action, actionLabel, onAction }: { title:
         {title}
       </Text>
       {label ? (
-        <Pressable onPress={onAction} disabled={!onAction}>
+        <Pressable accessibilityLabel={label} onPress={onAction} disabled={!onAction}>
           <Text style={styles.action}>{label}</Text>
         </Pressable>
       ) : null}

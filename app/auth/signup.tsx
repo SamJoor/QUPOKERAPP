@@ -15,7 +15,8 @@ function isValidEmail(value: string) {
 
 export default function SignupScreen() {
   const params = useLocalSearchParams<{ next?: string }>();
-  const [fullName, setFullName] = useState("");
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [message, setMessage] = useState("");
@@ -23,8 +24,8 @@ export default function SignupScreen() {
 
   async function submit() {
     const normalizedEmail = email.trim().toLowerCase();
-    if (!fullName.trim()) {
-      setMessage("Enter your full name.");
+    if (!firstName.trim() || !lastName.trim()) {
+      setMessage("Enter your first and last name.");
       return;
     }
     if (!isValidEmail(normalizedEmail)) {
@@ -35,15 +36,16 @@ export default function SignupScreen() {
       setMessage("Password must be at least 8 characters.");
       return;
     }
+    const fullName = `${firstName.trim()} ${lastName.trim()}`;
     setLoading(true);
     try {
-      const result = await signUp(normalizedEmail, password, fullName.trim());
+      const result = await signUp(normalizedEmail, password, fullName);
       if (!result.session) {
         setMessage("Account created. Confirm your email if required, then log in to complete your profile.");
         router.replace({ pathname: "/auth/login", params: params.next ? { next: params.next } : undefined });
         return;
       }
-      router.push({ pathname: "/onboarding/complete-profile", params: { id: result.user?.id, email: normalizedEmail, fullName: fullName.trim(), next: params.next } });
+      router.push({ pathname: "/onboarding/complete-profile", params: { id: result.user?.id, email: normalizedEmail, fullName, next: params.next } });
     } catch (err) {
       setMessage(err instanceof Error ? err.message : "Unable to sign up.");
     } finally {
@@ -60,11 +62,14 @@ export default function SignupScreen() {
           <Text style={styles.kicker}>QU Poker membership</Text>
         </View>
         <FormShell title="Join the club" subtitle="Create your member login for check-ins, point progress, tournament entries, and rewards.">
-          <TextInput label="Full name" value={fullName} onChangeText={setFullName} mode="outlined" textContentType="name" />
+          <View style={styles.nameRow}>
+            <TextInput label="First name" value={firstName} onChangeText={setFirstName} mode="outlined" textContentType="givenName" style={styles.nameInput} />
+            <TextInput label="Last name" value={lastName} onChangeText={setLastName} mode="outlined" textContentType="familyName" style={styles.nameInput} />
+          </View>
           <TextInput label="Email address" value={email} onChangeText={setEmail} autoCapitalize="none" autoCorrect={false} keyboardType="email-address" mode="outlined" textContentType="emailAddress" />
           <TextInput label="Password" value={password} onChangeText={setPassword} secureTextEntry mode="outlined" textContentType="newPassword" />
           <Text style={styles.passwordHelp}>Minimum 8 characters.</Text>
-          <AppButton icon="account-plus-outline" onPress={submit} disabled={loading || !fullName || !email || password.length < 8}>
+          <AppButton icon="account-plus-outline" onPress={submit} disabled={loading || !firstName.trim() || !lastName.trim() || !email || password.length < 8}>
             {loading ? "Creating..." : "Create Account"}
           </AppButton>
         </FormShell>
@@ -78,6 +83,8 @@ const styles = StyleSheet.create({
   form: { gap: 18, flex: 1, justifyContent: "center" },
   brandRow: { flexDirection: "row", alignItems: "center", gap: 12 },
   logo: { width: 72, height: 72, borderRadius: 18 },
+  nameRow: { flexDirection: "row", gap: 12 },
+  nameInput: { flex: 1 },
   kicker: { color: colors.gold, fontFamily: fonts.semibold, fontSize: 12, fontWeight: "900", textTransform: "uppercase" },
   passwordHelp: { color: colors.muted, fontSize: 12, fontWeight: "700" }
 });

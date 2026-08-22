@@ -6,6 +6,7 @@ type LeaderboardRpcRow = {
   user_id: string;
   full_name: string;
   avatar_url?: string | null;
+  avatar_key?: string | null;
   total_points: number;
   rank: number | string;
 };
@@ -33,6 +34,7 @@ export async function getAllTimeLeaderboard(): Promise<LeaderboardEntry[]> {
     user_id: row.user_id,
     full_name: row.full_name,
     avatar_url: row.avatar_url,
+    avatar_key: row.avatar_key,
     total_points: row.total_points,
     rank: Number(row.rank)
   }));

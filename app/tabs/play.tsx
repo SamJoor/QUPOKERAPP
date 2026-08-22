@@ -5,7 +5,7 @@ import { LinearGradient } from "expo-linear-gradient";
 import { Text } from "react-native-paper";
 import { PlayingCardDisplay } from "@/components/PlayingCardDisplay";
 import { ScreenContainer } from "@/components/ScreenContainer";
-import { colors, radii, spacing, typography } from "@/constants/theme";
+import { colors, fonts, radii, spacing, typography } from "@/constants/theme";
 import { Card, evaluatePokerHand, suitSymbols } from "@/lib/poker";
 import { BotLevel, createPokerGame, playerBetOrRaise, playerCheckOrCall, playerFold, PokerGameState } from "@/lib/pokerGame";
 
@@ -364,12 +364,14 @@ const styles = StyleSheet.create({
   },
   eyebrow: {
     color: colors.muted,
+    fontFamily: fonts.bold,
     fontSize: typography.meta,
     lineHeight: 16,
     fontWeight: "800"
   },
   title: {
     color: colors.text,
+    fontFamily: fonts.heading,
     marginTop: 2,
     fontSize: 34,
     lineHeight: 40,
@@ -609,6 +611,7 @@ const styles = StyleSheet.create({
   },
   sectionTitle: {
     color: colors.text,
+    fontFamily: fonts.headingSemibold,
     fontSize: typography.sectionTitle,
     lineHeight: 23,
     fontWeight: "900"

@@ -16,7 +16,7 @@ const statusTone: Record<TournamentOverview["status"], string> = {
 export function TournamentCard({ tournament, onPress, featured = false }: { tournament: TournamentOverview; onPress: () => void; featured?: boolean }) {
   const capacity = Math.min(100, Math.round((tournament.registered_count / tournament.max_players) * 100));
   return (
-    <Pressable onPress={onPress} style={({ pressed }) => [styles.card, featured && styles.featured, pressed && styles.pressed]}>
+    <Pressable accessibilityLabel={`${tournament.title}, ${tournament.status.replace("_", " ")}`} onPress={onPress} style={({ pressed }) => [styles.card, featured && styles.featured, pressed && styles.pressed]}>
       <View style={styles.crownBand}>
         <Text style={styles.crownText}>{featured ? "Featured Sit & Go" : "Club Tournament"}</Text>
         <ChipStack />

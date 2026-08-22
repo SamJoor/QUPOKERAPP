@@ -51,7 +51,7 @@ export default function WelcomeScreen() {
           <AppButton icon="account-plus-outline" onPress={() => router.push("/auth/signup")}>
             Join the Club
           </AppButton>
-          <AppButton mode="outlined" icon="login" onPress={() => router.push("/auth/login")}>
+          <AppButton mode="outlined" icon="login" color={colors.gold} onPress={() => router.push("/auth/login")}>
             Log In
           </AppButton>
         </View>

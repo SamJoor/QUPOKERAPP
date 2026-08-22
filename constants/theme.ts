@@ -35,13 +35,13 @@ export const colors = {
 };
 
 export const fonts = {
-  heading: "Barlow_800ExtraBold",
-  headingSemibold: "Barlow_700Bold",
-  regular: "Barlow_400Regular",
-  medium: "Barlow_500Medium",
-  semibold: "Barlow_600SemiBold",
-  bold: "Barlow_700Bold",
-  extraBold: "Barlow_800ExtraBold"
+  heading: "Fraunces_900Black",
+  headingSemibold: "Fraunces_700Bold",
+  regular: "Manrope_400Regular",
+  medium: "Manrope_500Medium",
+  semibold: "Manrope_600SemiBold",
+  bold: "Manrope_700Bold",
+  extraBold: "Manrope_800ExtraBold"
 };
 
 const fontConfig = {

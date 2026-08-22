@@ -1,20 +1,28 @@
 import { Tabs } from "expo-router";
-import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { BlurView } from "expo-blur";
-import type { ComponentProps } from "react";
+import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { Dimensions, StyleSheet, View } from "react-native";
 import { colors, radii } from "@/constants/theme";
 import { LoadingState } from "@/components/StateViews";
 import { ScreenContainer } from "@/components/ScreenContainer";
+import { VectorPlayersMark, VectorTicketMark } from "@/components/VectorMotifs";
 import { useRequireSession } from "@/hooks/useRequireSession";
 
-type NavIconName = ComponentProps<typeof MaterialCommunityIcons>["name"];
+type NavGlyph = "events" | "dashboard" | "social";
+
 const tabBarWidth = Math.min(Dimensions.get("window").width - 44, 346);
 
-function NavIcon({ focused, name }: { focused: boolean; name: NavIconName }) {
+function NavIcon({ focused, glyph }: { focused: boolean; glyph: NavGlyph }) {
+  const color = focused ? colors.ink : "rgba(247,248,250,0.58)";
+  const size = focused ? 25 : 24;
+
   return (
     <View style={[styles.navItem, focused && styles.navItemActive]}>
-      <MaterialCommunityIcons name={name} size={focused ? 25 : 24} color={focused ? colors.ink : "rgba(247,248,250,0.58)"} />
+      {glyph === "events" && <VectorTicketMark size={size} color={color} />}
+      {glyph === "dashboard" && (
+        <MaterialCommunityIcons name={focused ? "home" : "home-outline"} size={size} color={color} />
+      )}
+      {glyph === "social" && <VectorPlayersMark size={size} color={color} />}
     </View>
   );
 }
@@ -46,27 +54,30 @@ export default function TabLayout() {
         name="events"
         options={{
           title: "Events",
-          tabBarIcon: ({ focused }) => <NavIcon focused={focused} name="calendar-blank-outline" />
+          tabBarIcon: ({ focused }) => <NavIcon focused={focused} glyph="events" />
         }}
       />
       <Tabs.Screen
         name="dashboard"
         options={{
           title: "Home",
-          tabBarIcon: ({ focused }) => <NavIcon focused={focused} name="home-variant" />
+          tabBarIcon: ({ focused }) => <NavIcon focused={focused} glyph="dashboard" />
         }}
       />
       <Tabs.Screen
         name="profile"
         options={{
           title: "Social",
-          tabBarIcon: ({ focused }) => <NavIcon focused={focused} name="account-group-outline" />
+          tabBarIcon: ({ focused }) => <NavIcon focused={focused} glyph="social" />
         }}
       />
       <Tabs.Screen name="play" options={{ href: null }} />
       <Tabs.Screen name="tournaments" options={{ href: null }} />
       <Tabs.Screen name="leaderboard" options={{ href: null }} />
       <Tabs.Screen name="rewards" options={{ href: null }} />
+      <Tabs.Screen name="queue" options={{ href: null }} />
+      <Tabs.Screen name="create-match" options={{ href: null }} />
+      <Tabs.Screen name="live-match/[matchId]" options={{ href: null }} />
     </Tabs>
   );
 }

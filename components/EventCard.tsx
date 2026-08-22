@@ -8,7 +8,7 @@ import { PointsPill } from "./PointsPill";
 
 export function EventCard({ event }: { event: ClubEvent }) {
   return (
-    <Pressable style={({ pressed }) => [styles.pressable, pressed && styles.pressed]} onPress={() => router.push(`/events/${event.id}`)}>
+    <Pressable accessibilityLabel={`${event.title}, ${event.event_type}`} style={({ pressed }) => [styles.pressable, pressed && styles.pressed]} onPress={() => router.push(`/events/${event.id}`)}>
       <GlassPanel contentStyle={styles.card}>
         <View style={styles.row}>
           <Text style={styles.type}>{event.event_type.toUpperCase()}</Text>

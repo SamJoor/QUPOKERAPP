@@ -1,4 +1,4 @@
-import { useCallback, useState, type ComponentProps } from "react";
+import { useCallback, useState } from "react";
 import { Pressable, ScrollView, StyleSheet, View } from "react-native";
 import { useFocusEffect } from "@react-navigation/native";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
@@ -6,15 +6,15 @@ import { LinearGradient } from "expo-linear-gradient";
 import { router } from "expo-router";
 import { Text } from "react-native-paper";
 import { ProfileAvatar } from "@/components/ProfileAvatar";
-import { avatarSources } from "@/constants/avatarAssets";
+import { avatarSources, resolveAvatarSource } from "@/constants/avatarAssets";
 import { ScreenContainer } from "@/components/ScreenContainer";
 import { LoadingState } from "@/components/StateViews";
-import { colors, radii, spacing, typography } from "@/constants/theme";
+import { colors, fonts, radii, spacing, typography } from "@/constants/theme";
+import { VectorBellMark, VectorCoinStackMark, VectorDealMark, VectorSeatMark, VectorStudyMark } from "@/components/VectorMotifs";
 import { getCurrentProfile } from "@/lib/auth";
 import { getMonthlyLeaderboard } from "@/lib/leaderboard";
 import { LeaderboardEntry, Profile } from "@/lib/types";
 
-type IconName = ComponentProps<typeof MaterialCommunityIcons>["name"];
 type PointMode = "CP" | "XP";
 type PointValue = {
   label: string;
@@ -22,13 +22,18 @@ type PointValue = {
   value: string;
 };
 
-const quickActions: { id: string; label: string; accessibilityLabel: string; icon?: IconName; avatars?: number[]; accent?: boolean; disabled?: boolean }[] = [
-  { id: "create", label: "Create", accessibilityLabel: "Create game", icon: "plus", accent: true },
-  { id: "wait", label: "Wait and Play", accessibilityLabel: "Join wait and play queue", avatars: [0, 1, 2] },
-  { id: "ai", label: "AI Lobby", accessibilityLabel: "Open AI lobby practice", avatars: [1, 3, 0] },
-  { id: "cash", label: "Cash Games", accessibilityLabel: "Cash games coming soon", icon: "earth", disabled: true },
-  { id: "sitgo", label: "Sit & Go", accessibilityLabel: "Sit and go coming soon", icon: "trophy-outline", disabled: true },
-  { id: "training", label: "Training", accessibilityLabel: "Training coming soon", icon: "target", disabled: true }
+const quickActionGlyphs: Record<string, typeof VectorDealMark> = {
+  create: VectorDealMark,
+  cash: VectorCoinStackMark,
+  sitgo: VectorSeatMark,
+  training: VectorStudyMark
+};
+
+const quickActions: { id: string; label: string; accessibilityLabel: string; route: string; hasGlyph?: boolean; avatars?: number[]; accent?: boolean; disabled?: boolean }[] = [
+  { id: "create", label: "Create", accessibilityLabel: "Create a practice match", route: "/tabs/create-match", hasGlyph: true, accent: true },
+  { id: "wait", label: "Wait and Play", accessibilityLabel: "Join wait and play queue", route: "/tabs/queue", avatars: [0, 1, 2] },
+  { id: "ai", label: "AI Lobby", accessibilityLabel: "Open AI lobby practice", route: "/tabs/play", avatars: [1, 3, 0] },
+  { id: "training", label: "Training", accessibilityLabel: "Training coming soon", route: "/tabs/play", hasGlyph: true, disabled: true }
 ];
 
 function formatNumber(value?: number | null) {
@@ -48,9 +53,7 @@ function getRankMovement(index: number) {
 }
 
 function getLeaderboardAvatar(player: LeaderboardEntry, index: number, currentUserId?: string) {
-  if (player.avatar_url) return { uri: player.avatar_url };
-  if (player.user_id === currentUserId) return avatarSources[0];
-  return avatarSources[(index + 1) % avatarSources.length];
+  return resolveAvatarSource(player, player.user_id === currentUserId ? 0 : index + 1);
 }
 
 export default function DashboardScreen() {
@@ -103,9 +106,13 @@ export default function DashboardScreen() {
             >
               <MaterialCommunityIcons name="qrcode-scan" size={21} color={colors.text} />
             </Pressable>
-            <Pressable accessibilityLabel="Open notifications" hitSlop={10} style={({ pressed }) => [styles.iconButton, styles.notificationButton, pressed && styles.pressed]}>
-              <MaterialCommunityIcons name="bell-outline" size={21} color={colors.text} />
-              <View style={styles.notificationDot} />
+            <Pressable
+              accessibilityLabel="Open tournament center"
+              hitSlop={10}
+              onPress={() => router.push("/tabs/tournaments")}
+              style={({ pressed }) => [styles.iconButton, styles.notificationButton, pressed && styles.pressed]}
+            >
+              <VectorBellMark size={21} color={colors.text} />
             </Pressable>
           </View>
         </View>
@@ -159,12 +166,15 @@ export default function DashboardScreen() {
               accessibilityLabel={action.accessibilityLabel}
               disabled={action.disabled}
               key={action.id}
-              onPress={() => router.push("/tabs/play")}
+              onPress={() => router.push(action.route as never)}
               style={({ pressed }) => [styles.actionItem, action.disabled && styles.actionItemDisabled, pressed && styles.pressed]}
             >
               <View style={[styles.actionBubble, action.accent && styles.actionBubbleAccent]}>
-                {action.icon ? (
-                  <MaterialCommunityIcons name={action.icon} size={31} color={action.accent ? colors.gold : colors.text} />
+                {action.hasGlyph ? (
+                  (() => {
+                    const Glyph = quickActionGlyphs[action.id];
+                    return <Glyph size={30} color={action.accent ? colors.gold : colors.text} />;
+                  })()
                 ) : (
                   <View style={styles.avatarCluster}>
                     {action.avatars?.map((avatarIndex, index) => (
@@ -194,7 +204,12 @@ export default function DashboardScreen() {
             leaderboardRows.map((player, index) => {
               const movement = getRankMovement(index);
               return (
-                <Pressable accessibilityLabel={`${player.full_name}, ${formatNumber(player.total_points)} experience points`} key={player.user_id} style={({ pressed }) => [styles.leaderRow, player.user_id === profile?.id && styles.leaderRowActive, pressed && styles.pressed]}>
+                <Pressable
+                  accessibilityLabel={`${player.full_name}, ${formatNumber(player.total_points)} experience points`}
+                  key={player.user_id}
+                  onPress={() => router.push(`/members/${player.user_id}`)}
+                  style={({ pressed }) => [styles.leaderRow, player.user_id === profile?.id && styles.leaderRowActive, pressed && styles.pressed]}
+                >
                   <View style={styles.leaderLeft}>
                     <Text style={styles.leaderRank}>{player.rank || index + 1}</Text>
                     <ProfileAvatar size={46} source={getLeaderboardAvatar(player, index, profile?.id)} />
@@ -246,6 +261,7 @@ const styles = StyleSheet.create({
   },
   greeting: {
     color: colors.text,
+    fontFamily: fonts.bold,
     fontSize: typography.body,
     lineHeight: 20,
     fontWeight: "700"
@@ -268,23 +284,13 @@ const styles = StyleSheet.create({
   notificationButton: {
     position: "relative"
   },
-  notificationDot: {
-    position: "absolute",
-    top: 9,
-    right: 10,
-    width: 7,
-    height: 7,
-    borderRadius: 4,
-    backgroundColor: colors.gold,
-    borderColor: colors.background,
-    borderWidth: 1
-  },
   balanceBlock: {
     alignItems: "center",
     marginTop: 42
   },
   balanceLabel: {
     color: colors.muted,
+    fontFamily: fonts.semibold,
     fontSize: typography.meta,
     lineHeight: 16,
     fontWeight: "700"
@@ -298,6 +304,7 @@ const styles = StyleSheet.create({
   },
   balanceMarker: {
     color: colors.text,
+    fontFamily: fonts.headingSemibold,
     fontSize: 27,
     lineHeight: 36,
     fontWeight: "800",
@@ -305,6 +312,7 @@ const styles = StyleSheet.create({
   },
   balance: {
     color: colors.text,
+    fontFamily: fonts.heading,
     fontSize: typography.balance,
     lineHeight: 76,
     fontWeight: "300",
@@ -371,6 +379,7 @@ const styles = StyleSheet.create({
   },
   tournamentTitle: {
     color: colors.text,
+    fontFamily: fonts.extraBold,
     fontSize: 15,
     lineHeight: 19,
     fontWeight: "900"
@@ -472,6 +481,7 @@ const styles = StyleSheet.create({
   },
   actionLabel: {
     color: colors.text,
+    fontFamily: fonts.bold,
     marginTop: spacing.sm,
     fontSize: 12,
     lineHeight: 16,
@@ -486,6 +496,7 @@ const styles = StyleSheet.create({
   },
   leaderboardTitle: {
     color: colors.text,
+    fontFamily: fonts.headingSemibold,
     fontSize: typography.sectionTitle,
     lineHeight: 23,
     fontWeight: "800"
@@ -546,6 +557,7 @@ const styles = StyleSheet.create({
   },
   leaderName: {
     color: colors.text,
+    fontFamily: fonts.bold,
     fontSize: 14,
     lineHeight: 18,
     fontWeight: "800"
@@ -572,6 +584,7 @@ const styles = StyleSheet.create({
   },
   leaderXp: {
     color: colors.text,
+    fontFamily: fonts.extraBold,
     fontSize: 11,
     lineHeight: 14,
     fontWeight: "900"

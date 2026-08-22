@@ -139,7 +139,7 @@ export default function TournamentDetailScreen() {
 
       <Text style={styles.section}>Registered Players</Text>
       {registrations.length ? registrations.map((registration, index) => (
-        <Pressable key={registration.user_id} style={styles.playerRow} onPress={() => router.push(`/members/${registration.user_id}`)}>
+        <Pressable accessibilityLabel={registration.full_name} key={registration.user_id} style={styles.playerRow} onPress={() => router.push(`/members/${registration.user_id}`)}>
           <Text style={styles.playerName}>{index + 1}. {registration.full_name}</Text>
           <Text style={styles.playerStatus}>
             {registration.table_number && registration.seat_number ? `T${registration.table_number} S${registration.seat_number}` : registration.status}
@@ -149,7 +149,7 @@ export default function TournamentDetailScreen() {
 
       <Text style={styles.section}>Tables</Text>
       {tableSeats.length ? tableSeats.map((seat) => (
-        <Pressable key={`${seat.table_id}-${seat.seat_number}`} style={styles.playerRow} onPress={() => router.push(`/members/${seat.user_id}`)}>
+        <Pressable accessibilityLabel={seat.full_name} key={`${seat.table_id}-${seat.seat_number}`} style={styles.playerRow} onPress={() => router.push(`/members/${seat.user_id}`)}>
           <Text style={styles.playerName}>Table {seat.table_number}, Seat {seat.seat_number}</Text>
           <Text style={styles.playerStatus}>{seat.full_name}</Text>
         </Pressable>
@@ -157,7 +157,7 @@ export default function TournamentDetailScreen() {
 
       <Text style={styles.section}>Results</Text>
       {results.length ? results.map((result) => (
-        <Pressable key={result.user_id} style={styles.resultRow} onPress={() => router.push(`/members/${result.user_id}`)}>
+        <Pressable accessibilityLabel={`${result.full_name}, placement ${result.placement}`} key={result.user_id} style={styles.resultRow} onPress={() => router.push(`/members/${result.user_id}`)}>
           <Text style={styles.playerName}>#{result.placement} {result.full_name}</Text>
           <Text style={styles.points}>+{result.points_awarded}</Text>
         </Pressable>

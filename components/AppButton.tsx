@@ -8,24 +8,31 @@ export function AppButton({
   onPress,
   mode = "contained",
   icon,
-  disabled
+  disabled,
+  accessibilityLabel,
+  color
 }: {
   children: ReactNode;
   onPress?: () => void;
   mode?: "contained" | "outlined" | "text";
   icon?: string;
   disabled?: boolean;
+  accessibilityLabel?: string;
+  color?: string;
 }) {
+  const accent = color ?? colors.green;
+  const containedTextColor = color ? colors.ink : colors.text;
   return (
     <Button
       mode={mode}
       icon={icon}
       disabled={disabled}
       onPress={onPress}
+      accessibilityLabel={accessibilityLabel ?? (typeof children === "string" ? children : undefined)}
       contentStyle={styles.content}
       labelStyle={styles.label}
-      buttonColor={mode === "contained" ? colors.green : undefined}
-      textColor={mode === "contained" ? colors.text : colors.green}
+      buttonColor={mode === "contained" ? accent : undefined}
+      textColor={mode === "contained" ? containedTextColor : accent}
       style={[styles.button, mode === "outlined" && styles.outlined]}
     >
       {children}

@@ -62,7 +62,7 @@ export default function LoginScreen() {
         <FormShell title="Sign in" subtitle="Use your email and password for check-ins, points, tournaments, and rewards.">
           <TextInput label="Email address" value={email} onChangeText={setEmail} autoCapitalize="none" autoCorrect={false} keyboardType="email-address" mode="outlined" textContentType="emailAddress" />
           <TextInput label="Password" value={password} onChangeText={setPassword} secureTextEntry mode="outlined" textContentType="password" />
-          <AppButton icon="login" onPress={submit} disabled={loading}>
+          <AppButton icon="login" onPress={submit} disabled={loading} color={colors.gold}>
             {loading ? "Signing in..." : "Sign In"}
           </AppButton>
           <AppButton mode="text" onPress={() => router.push("/auth/forgot-password")}>

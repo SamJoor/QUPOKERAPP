@@ -1,4 +1,4 @@
-import Svg, { Circle, Defs, G, LinearGradient, Path, Rect, Stop } from "react-native-svg";
+import Svg, { Circle, Defs, G, LinearGradient, Path, Rect, Stop, Text as SvgText } from "react-native-svg";
 import { colors } from "@/constants/theme";
 
 export function VectorSuit({
@@ -50,7 +50,9 @@ export function VectorChip({ size = 64, labelColor = colors.navyInk }: { size?: 
         <Rect x="16" y="77" width="17" height="7" rx="3.5" transform="rotate(45 24.5 80.5)" />
       </G>
       <Circle cx="50" cy="50" r="28" fill={colors.gold} stroke={colors.navyInk} strokeWidth="4" />
-      <Path fill={labelColor} d="M30 39h8v16c0 3 1.5 4.7 4 4.7s4-1.7 4-4.7V39h8v16.2c0 8-4.8 12.2-12 12.2s-12-4.2-12-12.2V39Zm28 0h8v20h11v8H58V39Z" />
+      <SvgText x="50" y="61" fontSize="30" fontWeight="900" fill={labelColor} textAnchor="middle">
+        QU
+      </SvgText>
     </Svg>
   );
 }
@@ -78,6 +80,108 @@ export function VectorPerforation({ height = 104 }: { height?: number }) {
       {Array.from({ length: 8 }).map((_, index) => (
         <Circle key={index} cx="7" cy={10 + index * ((height - 20) / 7)} r="3.2" fill={colors.background} />
       ))}
+    </Svg>
+  );
+}
+
+// Functional icon glyphs below — hand-drawn to match the suit/chip motifs above rather than
+// pulled from a generic icon font, for the buttons users see most often (tab bar, dashboard).
+
+export function VectorTicketMark({ size = 24, color = colors.text }: { size?: number; color?: string }) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 64 64">
+      <Path
+        fill="none"
+        stroke={color}
+        strokeWidth={4}
+        strokeLinejoin="round"
+        d="M8 20c3 0 5 2.5 5 6s-2 6-5 6v10a4 4 0 0 0 4 4h40a4 4 0 0 0 4-4V32c-3 0-5-2.5-5-6s2-6 5-6V10a4 4 0 0 0-4-4H12a4 4 0 0 0-4 4v10Z"
+      />
+      <Path stroke={color} strokeWidth={3} strokeLinecap="round" strokeDasharray="1 7" d="M32 12v40" />
+    </Svg>
+  );
+}
+
+export function VectorChipOutline({ size = 24, color = colors.text }: { size?: number; color?: string }) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 64 64">
+      <Circle cx="32" cy="32" r="26" fill="none" stroke={color} strokeWidth="4" />
+      <Circle cx="32" cy="32" r="14" fill="none" stroke={color} strokeWidth="3.5" />
+      <G fill={color}>
+        <Rect x="29" y="3" width="6" height="10" rx="3" />
+        <Rect x="29" y="51" width="6" height="10" rx="3" />
+        <Rect x="3" y="29" width="10" height="6" rx="3" />
+        <Rect x="51" y="29" width="10" height="6" rx="3" />
+      </G>
+    </Svg>
+  );
+}
+
+export function VectorPlayersMark({ size = 24, color = colors.text }: { size?: number; color?: string }) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 64 64">
+      <Path fill={color} opacity={0.5} d="M21 29a9.5 9.5 0 1 0 0-19 9.5 9.5 0 0 0 0 19Zm0 6c-8.7 0-17 4.3-17 11.4V52h27v-5.6c0-3.8-1.8-6.8-4.6-9A24 24 0 0 0 21 35Z" />
+      <Path fill={color} d="M41.5 27a8.5 8.5 0 1 0 0-17 8.5 8.5 0 0 0 0 17Zm0 6c-1.8 0-3.6.2-5.4.7 3.6 2.8 5.4 6.5 5.4 10.5V50h19v-6.4C60.5 36.4 51.9 33 41.5 33Z" />
+    </Svg>
+  );
+}
+
+export function VectorDealMark({ size = 30, color = colors.gold }: { size?: number; color?: string }) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 64 64">
+      <Rect x="8" y="6" width="34" height="46" rx="6" fill="none" stroke={color} strokeWidth="4" />
+      <Circle cx="46" cy="46" r="15" fill={color} />
+      <Path stroke={colors.ink} strokeWidth="4" strokeLinecap="round" d="M46 39v14M39 46h14" />
+    </Svg>
+  );
+}
+
+export function VectorCoinStackMark({ size = 28, color = colors.text }: { size?: number; color?: string }) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 64 64">
+      <Rect x="10" y="40" width="44" height="14" rx="7" fill="none" stroke={color} strokeWidth="4" />
+      <Rect x="10" y="25" width="44" height="14" rx="7" fill="none" stroke={color} strokeWidth="4" />
+      <Rect x="10" y="10" width="44" height="14" rx="7" fill="none" stroke={color} strokeWidth="4" />
+    </Svg>
+  );
+}
+
+export function VectorSeatMark({ size = 28, color = colors.text }: { size?: number; color?: string }) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 64 64">
+      <Path
+        fill="none"
+        stroke={color}
+        strokeWidth={4}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        d="M16 8v30a6 6 0 0 0 6 6h20a6 6 0 0 0 6-6V8M14 44l-4 14M50 44l4 14M22 44h20"
+      />
+    </Svg>
+  );
+}
+
+export function VectorStudyMark({ size = 28, color = colors.text }: { size?: number; color?: string }) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 64 64">
+      <Path
+        fill="none"
+        stroke={color}
+        strokeWidth={4}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        d="M32 14c-6-4-14-6-22-6v38c8 0 16 2 22 6 6-4 14-6 22-6V8c-8 0-16 2-22 6Z"
+      />
+      <Path stroke={color} strokeWidth={4} strokeLinecap="round" d="M32 14v38" />
+    </Svg>
+  );
+}
+
+export function VectorBellMark({ size = 21, color = colors.text }: { size?: number; color?: string }) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 64 64">
+      <Path fill={color} d="M32 6c-3 0-5.5 2.3-5.9 5.3C18.6 13.6 14 20.7 14 29v12l-6 8h48l-6-8V29c0-8.3-4.6-15.4-12.1-17.7C37.5 8.3 35 6 32 6Z" />
+      <Path fill={color} d="M25 53a7 7 0 0 0 14 0Z" />
     </Svg>
   );
 }

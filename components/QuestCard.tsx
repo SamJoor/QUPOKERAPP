@@ -23,7 +23,7 @@ export function QuestCard({
   const accent = tone === "gold" ? colors.gold : colors.green;
 
   return (
-    <Pressable style={({ pressed }) => [styles.card, pressed && styles.pressed]} onPress={onPress}>
+    <Pressable accessibilityLabel={`Step ${step}: ${title}. ${body}`} style={({ pressed }) => [styles.card, pressed && styles.pressed]} onPress={onPress}>
       <View style={styles.stepWrap}>
         <View style={[styles.step, { backgroundColor: accent }]}>
           <Text style={styles.stepText}>{step}</Text>

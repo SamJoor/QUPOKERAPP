@@ -6,7 +6,7 @@ import { GlassPanel } from "./GlassPanel";
 
 export function LeaderboardRow({ entry, onPress }: { entry: LeaderboardEntry; onPress?: () => void }) {
   return (
-    <Pressable onPress={onPress} style={({ pressed }) => [styles.pressable, pressed && styles.pressed]}>
+    <Pressable accessibilityLabel={`${entry.full_name}, rank ${entry.rank}, ${entry.total_points} points`} onPress={onPress} style={({ pressed }) => [styles.pressable, pressed && styles.pressed]}>
       <GlassPanel contentStyle={styles.row} gradient={[colors.surface, colors.cardBlack]}>
         <Text style={styles.rank}>#{entry.rank}</Text>
         <Avatar.Text size={42} label={entry.full_name.slice(0, 2).toUpperCase()} style={styles.avatar} labelStyle={styles.avatarText} />

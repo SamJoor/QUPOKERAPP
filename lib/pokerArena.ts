@@ -1,4 +1,5 @@
 import { supabase, hasSupabaseConfig } from "./supabase";
+import { Card } from "./poker";
 
 export type QueueStatus = "waiting" | "matched" | "cancelled";
 export type PokerMatchType = "bot" | "friend" | "queue";
@@ -78,6 +79,22 @@ export async function acceptPokerInvite(inviteToken: string) {
   return data;
 }
 
+export type PokerMatchPlayer = { seat: 1 | 2; user_id: string | null; display_name: string };
+export type PokerMatchWithPlayers = PokerMatch & { players: PokerMatchPlayer[] };
+
+export async function getPokerMatch(matchId: string): Promise<PokerMatchWithPlayers | null> {
+  if (!hasSupabaseConfig) return null;
+  const { data, error } = await supabase
+    .from("poker_matches")
+    .select("*, poker_match_players(seat, user_id, display_name)")
+    .eq("id", matchId)
+    .maybeSingle();
+  if (error) throw error;
+  if (!data) return null;
+  const { poker_match_players, ...match } = data as unknown as PokerMatch & { poker_match_players: PokerMatchPlayer[] };
+  return { ...match, players: poker_match_players ?? [] };
+}
+
 export async function getMyActivePokerMatches(): Promise<PokerMatch[]> {
   if (!hasSupabaseConfig) return [];
   const { data, error } = await supabase
@@ -116,6 +133,34 @@ export async function updatePokerMatchState(matchId: string, actionType: string,
     p_game_state: gameState,
     p_next_turn_user_id: nextTurnUserId ?? null
   });
+  if (error) throw error;
+  return data as Record<string, unknown>;
+}
+
+export async function dealPokerMatch(matchId: string) {
+  if (!hasSupabaseConfig) return { dealt: true };
+  const { data, error } = await supabase.rpc("deal_poker_match", { p_match_id: matchId });
+  if (error && !/already dealt/i.test(error.message)) throw error;
+  return data;
+}
+
+export async function getMyHoleCards(matchId: string): Promise<Card[]> {
+  if (!hasSupabaseConfig) return [];
+  const { data, error } = await supabase.rpc("get_my_hole_cards", { p_match_id: matchId });
+  if (error) throw error;
+  return (data ?? []) as Card[];
+}
+
+export async function getShowdownHoleCards(matchId: string): Promise<{ user_id: string; cards: Card[] }[]> {
+  if (!hasSupabaseConfig) return [];
+  const { data, error } = await supabase.rpc("get_showdown_hole_cards", { p_match_id: matchId });
+  if (error) throw error;
+  return (data ?? []) as { user_id: string; cards: Card[] }[];
+}
+
+export async function revealCommunityStreet(matchId: string, street: "flop" | "turn" | "river" | "showdown"): Promise<Record<string, unknown>> {
+  if (!hasSupabaseConfig) return {};
+  const { data, error } = await supabase.rpc("reveal_community_street", { p_match_id: matchId, p_street: street });
   if (error) throw error;
   return data as Record<string, unknown>;
 }

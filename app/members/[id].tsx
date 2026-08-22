@@ -1,9 +1,11 @@
 import { useCallback, useEffect, useState } from "react";
 import { StyleSheet, View } from "react-native";
 import { router, useLocalSearchParams } from "expo-router";
-import { Avatar, Text } from "react-native-paper";
+import { Text } from "react-native-paper";
 import { AppButton } from "@/components/AppButton";
 import { BackButton } from "@/components/BackButton";
+import { ProfileAvatar } from "@/components/ProfileAvatar";
+import { resolveAvatarSource } from "@/constants/avatarAssets";
 import { ScreenContainer } from "@/components/ScreenContainer";
 import { StatCard } from "@/components/StatCard";
 import { ErrorState, LoadingState } from "@/components/StateViews";
@@ -66,7 +68,7 @@ export default function PublicMemberProfileScreen() {
     <ScreenContainer>
       <BackButton fallback="/tabs/leaderboard" />
       <View style={styles.header}>
-        <Avatar.Text size={78} label={profile.full_name.slice(0, 2).toUpperCase()} style={styles.avatar} labelStyle={styles.avatarText} />
+        <ProfileAvatar size={78} source={resolveAvatarSource(profile)} />
         <Text style={styles.name}>{profile.full_name}</Text>
         <Text style={styles.meta}>
           {profile.major ?? "Club member"}{profile.graduation_year ? ` | Class of ${profile.graduation_year}` : ""}
@@ -89,8 +91,6 @@ export default function PublicMemberProfileScreen() {
 
 const styles = StyleSheet.create({
   header: { alignItems: "center", gap: 8, paddingVertical: 10 },
-  avatar: { backgroundColor: colors.greenSoft },
-  avatarText: { color: colors.green, fontWeight: "900" },
   name: { color: colors.text, fontSize: 30, fontWeight: "900", textAlign: "center" },
   meta: { color: colors.muted, textAlign: "center", lineHeight: 20 },
   stats: { flexDirection: "row", gap: 12 },

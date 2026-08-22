@@ -2,23 +2,37 @@ import { Stack } from "expo-router";
 import { PaperProvider } from "react-native-paper";
 import { StatusBar } from "expo-status-bar";
 import {
-  Barlow_400Regular,
-  Barlow_500Medium,
-  Barlow_600SemiBold,
-  Barlow_700Bold,
-  Barlow_800ExtraBold,
-  useFonts
-} from "@expo-google-fonts/barlow";
+  Fraunces_600SemiBold,
+  Fraunces_700Bold,
+  Fraunces_800ExtraBold,
+  Fraunces_900Black,
+  useFonts as useFrauncesFonts
+} from "@expo-google-fonts/fraunces";
+import {
+  Manrope_400Regular,
+  Manrope_500Medium,
+  Manrope_600SemiBold,
+  Manrope_700Bold,
+  Manrope_800ExtraBold,
+  useFonts as useManropeFonts
+} from "@expo-google-fonts/manrope";
 import { theme } from "@/constants/theme";
 
 export default function RootLayout() {
-  const [fontsLoaded] = useFonts({
-    Barlow_400Regular,
-    Barlow_500Medium,
-    Barlow_600SemiBold,
-    Barlow_700Bold,
-    Barlow_800ExtraBold
+  const [frauncesLoaded] = useFrauncesFonts({
+    Fraunces_600SemiBold,
+    Fraunces_700Bold,
+    Fraunces_800ExtraBold,
+    Fraunces_900Black
   });
+  const [manropeLoaded] = useManropeFonts({
+    Manrope_400Regular,
+    Manrope_500Medium,
+    Manrope_600SemiBold,
+    Manrope_700Bold,
+    Manrope_800ExtraBold
+  });
+  const fontsLoaded = frauncesLoaded && manropeLoaded;
 
   if (!fontsLoaded) {
     return null;

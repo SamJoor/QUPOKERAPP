@@ -103,7 +103,7 @@ export async function signOut() {
 
 export async function upsertProfile(input: Partial<Profile> & { id: string; email: string; full_name: string }) {
   if (!hasSupabaseConfig) return;
-  const { id, email, full_name, student_id, graduation_year, major, avatar_url } = input;
+  const { id, email, full_name, student_id, graduation_year, major, avatar_url, avatar_key } = input;
   const { error } = await supabase.from("profiles").upsert({
     id,
     email,
@@ -111,7 +111,8 @@ export async function upsertProfile(input: Partial<Profile> & { id: string; emai
     student_id,
     graduation_year,
     major,
-    avatar_url
+    avatar_url,
+    avatar_key
   });
   if (error) throw error;
 }
@@ -122,6 +123,7 @@ export async function updateOwnProfile(input: {
   graduation_year?: number | null;
   major?: string | null;
   avatar_url?: string | null;
+  avatar_key?: string | null;
 }) {
   if (!hasSupabaseConfig) return;
   const { error } = await supabase.rpc("update_own_profile", {
@@ -129,7 +131,8 @@ export async function updateOwnProfile(input: {
     p_student_id: input.student_id ?? null,
     p_graduation_year: input.graduation_year ?? null,
     p_major: input.major ?? null,
-    p_avatar_url: input.avatar_url ?? null
+    p_avatar_url: input.avatar_url ?? null,
+    p_avatar_key: input.avatar_key ?? null
   });
   if (error) throw error;
 }
