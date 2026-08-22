@@ -1,4 +1,4 @@
-import { supabase, hasSupabaseConfig } from "./supabase";
+import { supabase, demoDataEnabled } from "./supabase";
 import { getCurrentUser } from "./auth";
 
 export type FriendshipStatus = "pending" | "accepted" | "blocked";
@@ -21,7 +21,7 @@ export type Friendship = {
 };
 
 export async function searchMembers(query: string): Promise<MemberSearchResult[]> {
-  if (!hasSupabaseConfig) return [];
+  if (demoDataEnabled) return [];
   if (!query.trim()) return [];
   const { data, error } = await supabase.rpc("search_club_members", { p_query: query });
   if (error) throw error;
@@ -29,7 +29,7 @@ export async function searchMembers(query: string): Promise<MemberSearchResult[]
 }
 
 export async function sendFriendRequest(addresseeId: string) {
-  if (!hasSupabaseConfig) return { status: "pending" };
+  if (demoDataEnabled) return { status: "pending" };
   const user = await getCurrentUser();
   if (!user) throw new Error("Authentication required");
   const { error } = await supabase.from("poker_friendships").insert({ requester_id: user.id, addressee_id: addresseeId, status: "pending" });
@@ -38,7 +38,7 @@ export async function sendFriendRequest(addresseeId: string) {
 }
 
 export async function respondToFriendRequest(friendshipId: string, accept: boolean) {
-  if (!hasSupabaseConfig) return;
+  if (demoDataEnabled) return;
   if (accept) {
     const { error } = await supabase.from("poker_friendships").update({ status: "accepted" }).eq("id", friendshipId);
     if (error) throw error;
@@ -49,7 +49,7 @@ export async function respondToFriendRequest(friendshipId: string, accept: boole
 }
 
 export async function removeFriend(friendshipId: string) {
-  if (!hasSupabaseConfig) return;
+  if (demoDataEnabled) return;
   const { error } = await supabase.from("poker_friendships").delete().eq("id", friendshipId);
   if (error) throw error;
 }
@@ -60,7 +60,7 @@ export async function removeFriend(friendshipId: string) {
  * directional row per pair and either side could be "me".
  */
 export async function getMyFriends(status?: FriendshipStatus): Promise<Friendship[]> {
-  if (!hasSupabaseConfig) return [];
+  if (demoDataEnabled) return [];
   const user = await getCurrentUser();
   if (!user) return [];
 

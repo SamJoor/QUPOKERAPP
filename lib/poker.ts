@@ -1,4 +1,4 @@
-import { supabase, hasSupabaseConfig } from "./supabase";
+import { supabase, demoDataEnabled } from "./supabase";
 
 export type Suit = "S" | "H" | "D" | "C";
 export type Rank = "2" | "3" | "4" | "5" | "6" | "7" | "8" | "9" | "10" | "J" | "Q" | "K" | "A";
@@ -130,7 +130,7 @@ export function compareHands(a: HandEvaluation, b: HandEvaluation) {
 }
 
 export async function claimDailyPracticePoints() {
-  if (!hasSupabaseConfig) return { status: "success", points_awarded: 10 };
+  if (demoDataEnabled) return { status: "success", points_awarded: 10 };
   const { data, error } = await supabase.rpc("claim_daily_practice");
   if (error) throw error;
   return data;

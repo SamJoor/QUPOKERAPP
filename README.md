@@ -39,6 +39,18 @@ EXPO_PUBLIC_APP_STORE_URL=
 
 Do not place a Supabase service role key in this mobile app. Privileged operations should stay in Supabase RPC functions, database policies, or server-side/Edge Function code.
 
+### Offline demo data
+
+The app can run without a backend on the fixtures in `lib/mockData.ts`, but this is **opt-in only**:
+
+```bash
+EXPO_PUBLIC_DEMO_MODE=1
+```
+
+Missing Supabase config on its own never activates demo data — it fails closed at the login
+screen instead, so a release build with a broken `.env` cannot seat users in a fabricated
+account. The demo profile has the `member` role, so admin screens are unavailable offline.
+
 ## Supabase Setup
 
 1. Create a Supabase project.
@@ -58,6 +70,8 @@ Do not place a Supabase service role key in this mobile app. Privileged operatio
    - `supabase/migrations/013_tournament_director_results.sql`
    - `supabase/migrations/014_profile_avatars_storage.sql`
    - `supabase/migrations/015_poker_live_realtime.sql`
+   - `supabase/migrations/016_poker_hole_cards.sql`
+   - `supabase/migrations/017_avatar_picker.sql`
 3. Run `supabase/smoke-test.sql` to confirm key tables/functions exist.
 4. Optionally run `supabase/seed/seed.sql` for development seed data.
 5. Enable email auth providers as needed.

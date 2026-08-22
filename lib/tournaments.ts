@@ -1,4 +1,4 @@
-import { supabase, hasSupabaseConfig } from "./supabase";
+import { supabase, demoDataEnabled } from "./supabase";
 import { demoTournaments } from "./mockData";
 import { Tournament } from "./types";
 
@@ -53,14 +53,14 @@ export type TournamentTableSeat = {
 };
 
 export async function getTournaments(): Promise<Tournament[]> {
-  if (!hasSupabaseConfig) return demoTournaments;
+  if (demoDataEnabled) return demoTournaments;
   const { data, error } = await supabase.from("tournaments").select("*").order("starts_at");
   if (error) throw error;
   return data ?? [];
 }
 
 export async function getTournamentOverview(): Promise<TournamentOverview[]> {
-  if (!hasSupabaseConfig) {
+  if (demoDataEnabled) {
     return demoTournaments.map((tournament) => ({
       ...tournament,
       registered_count: tournament.status === "registration_open" ? 12 : 0,
@@ -73,14 +73,14 @@ export async function getTournamentOverview(): Promise<TournamentOverview[]> {
 }
 
 export async function getTournament(id: string): Promise<Tournament | null> {
-  if (!hasSupabaseConfig) return demoTournaments.find((item) => item.id === id) ?? null;
+  if (demoDataEnabled) return demoTournaments.find((item) => item.id === id) ?? null;
   const { data, error } = await supabase.from("tournaments").select("*").eq("id", id).single();
   if (error) throw error;
   return data;
 }
 
 export async function registerForTournament(tournamentId: string): Promise<TournamentRegistrationResponse> {
-  if (!hasSupabaseConfig) return { status: "registered", registration_id: tournamentId, table_number: 1, seat_number: 1 };
+  if (demoDataEnabled) return { status: "registered", registration_id: tournamentId, table_number: 1, seat_number: 1 };
   const { data, error } = await supabase.rpc("register_for_tournament", { p_tournament_id: tournamentId });
   if (error) {
     const details = [error.message, error.details, error.hint].filter(Boolean).join(" ");
@@ -90,7 +90,7 @@ export async function registerForTournament(tournamentId: string): Promise<Tourn
 }
 
 export async function getTournamentRegistrationsPublic(tournamentId: string): Promise<TournamentRegistration[]> {
-  if (!hasSupabaseConfig) return [];
+  if (demoDataEnabled) return [];
   const { data, error } = await supabase.rpc("get_tournament_registrations_public", { p_tournament_id: tournamentId });
   if (error) {
     if (error.message?.toLowerCase().includes("function")) return [];
@@ -100,7 +100,7 @@ export async function getTournamentRegistrationsPublic(tournamentId: string): Pr
 }
 
 export async function getTournamentResultsPublic(tournamentId: string): Promise<TournamentResult[]> {
-  if (!hasSupabaseConfig) return [];
+  if (demoDataEnabled) return [];
   const { data, error } = await supabase.rpc("get_tournament_results_public", { p_tournament_id: tournamentId });
   if (error) {
     if (error.message?.toLowerCase().includes("function")) return [];
@@ -110,7 +110,7 @@ export async function getTournamentResultsPublic(tournamentId: string): Promise<
 }
 
 export async function getTournamentTableSeats(tournamentId: string): Promise<TournamentTableSeat[]> {
-  if (!hasSupabaseConfig) return [];
+  if (demoDataEnabled) return [];
   const { data, error } = await supabase.rpc("get_tournament_table_seats", { p_tournament_id: tournamentId });
   if (error) {
     if (error.message?.toLowerCase().includes("function")) return [];
@@ -120,7 +120,7 @@ export async function getTournamentTableSeats(tournamentId: string): Promise<Tou
 }
 
 export async function getMyTournamentRegistrations(): Promise<MyTournamentRegistration[]> {
-  if (!hasSupabaseConfig) return [];
+  if (demoDataEnabled) return [];
   const { data, error } = await supabase
     .from("tournament_registrations")
     .select("*, tournaments(*)")

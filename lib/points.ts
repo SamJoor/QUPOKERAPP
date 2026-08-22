@@ -1,9 +1,9 @@
-import { supabase, hasSupabaseConfig } from "./supabase";
+import { supabase, demoDataEnabled } from "./supabase";
 import { demoLedger } from "./mockData";
 import { LedgerEntry, PointsSource } from "./types";
 
 export async function getMyPointHistory(userId: string): Promise<LedgerEntry[]> {
-  if (!hasSupabaseConfig) return demoLedger;
+  if (demoDataEnabled) return demoLedger;
   const { data, error } = await supabase
     .from("points_ledger")
     .select("*")

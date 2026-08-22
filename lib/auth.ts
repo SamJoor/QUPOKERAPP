@@ -1,24 +1,24 @@
 import * as Linking from "expo-linking";
-import { supabase, hasSupabaseConfig } from "./supabase";
+import { supabase, demoDataEnabled } from "./supabase";
 import { demoProfile } from "./mockData";
 import { Profile } from "./types";
 
 export async function getCurrentUser() {
-  if (!hasSupabaseConfig) return { id: demoProfile.id, email: demoProfile.email };
+  if (demoDataEnabled) return { id: demoProfile.id, email: demoProfile.email };
   const { data, error } = await supabase.auth.getUser();
   if (error) throw error;
   return data.user;
 }
 
 export async function getCurrentSession() {
-  if (!hasSupabaseConfig) return { user: { id: demoProfile.id, email: demoProfile.email } };
+  if (demoDataEnabled) return { user: { id: demoProfile.id, email: demoProfile.email } };
   const { data, error } = await supabase.auth.getSession();
   if (error) throw error;
   return data.session;
 }
 
 export async function getCurrentProfile(): Promise<Profile | null> {
-  if (!hasSupabaseConfig) return demoProfile;
+  if (demoDataEnabled) return demoProfile;
   const user = await getCurrentUser();
   if (!user) return null;
   const { data, error } = await supabase.from("profiles").select("*").eq("id", user.id).maybeSingle();
@@ -27,14 +27,14 @@ export async function getCurrentProfile(): Promise<Profile | null> {
 }
 
 export async function signIn(email: string, password: string) {
-  if (!hasSupabaseConfig) return;
+  if (demoDataEnabled) return;
   const { data, error } = await supabase.auth.signInWithPassword({ email, password });
   if (error) throw error;
   return data;
 }
 
 export async function signUp(email: string, password: string, fullName: string) {
-  if (!hasSupabaseConfig) {
+  if (demoDataEnabled) {
     return {
       user: { ...demoProfile, id: "demo-user", email, full_name: fullName },
       session: { user: { id: "demo-user", email } }
@@ -57,7 +57,7 @@ export async function signUp(email: string, password: string, fullName: string) 
 }
 
 export async function resetPassword(email: string) {
-  if (!hasSupabaseConfig) return;
+  if (demoDataEnabled) return;
   const { error } = await supabase.auth.resetPasswordForEmail(email, {
     redirectTo: Linking.createURL("/auth/update-password")
   });
@@ -65,7 +65,7 @@ export async function resetPassword(email: string) {
 }
 
 export async function establishPasswordRecoverySession(url: string | null) {
-  if (!hasSupabaseConfig || !url) return;
+  if (demoDataEnabled || !url) return;
 
   const parsed = new URL(url);
   const hashParams = new URLSearchParams(parsed.hash.replace(/^#/, ""));
@@ -90,19 +90,19 @@ export async function establishPasswordRecoverySession(url: string | null) {
 }
 
 export async function updatePassword(password: string) {
-  if (!hasSupabaseConfig) return;
+  if (demoDataEnabled) return;
   const { error } = await supabase.auth.updateUser({ password });
   if (error) throw error;
 }
 
 export async function signOut() {
-  if (!hasSupabaseConfig) return;
+  if (demoDataEnabled) return;
   const { error } = await supabase.auth.signOut();
   if (error) throw error;
 }
 
 export async function upsertProfile(input: Partial<Profile> & { id: string; email: string; full_name: string }) {
-  if (!hasSupabaseConfig) return;
+  if (demoDataEnabled) return;
   const { id, email, full_name, student_id, graduation_year, major, avatar_url, avatar_key } = input;
   const { error } = await supabase.from("profiles").upsert({
     id,
@@ -125,7 +125,7 @@ export async function updateOwnProfile(input: {
   avatar_url?: string | null;
   avatar_key?: string | null;
 }) {
-  if (!hasSupabaseConfig) return;
+  if (demoDataEnabled) return;
   const { error } = await supabase.rpc("update_own_profile", {
     p_full_name: input.full_name,
     p_student_id: input.student_id ?? null,
@@ -138,7 +138,7 @@ export async function updateOwnProfile(input: {
 }
 
 export async function uploadProfileAvatar(userId: string, uri: string) {
-  if (!hasSupabaseConfig) return uri;
+  if (demoDataEnabled) return uri;
   const extension = uri.split(".").pop()?.split("?")[0] || "jpg";
   const path = `${userId}/avatar-${Date.now()}.${extension}`;
   const response = await fetch(uri);

@@ -8,7 +8,9 @@ export const demoProfile: Profile = {
   graduation_year: 2027,
   major: "Finance",
   avatar_url: null,
-  role: "admin",
+  // Demo data must never confer privileges. Admin screens are verified against a real
+  // session via requireAdmin(); see lib/auth.ts.
+  role: "member",
   total_points: 520,
   lifetime_points: 520,
   spendable_points: 520,

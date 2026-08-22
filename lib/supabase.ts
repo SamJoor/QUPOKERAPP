@@ -52,6 +52,18 @@ const supabaseAnonKey = process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY ?? "";
 
 export const hasSupabaseConfig = Boolean(supabaseUrl && supabaseAnonKey);
 
+/** Demo data is opt-in, never an automatic consequence of missing config.
+ * A release build with a broken .env must fail closed at the login screen rather than
+ * silently seating the user in a fabricated (and formerly admin) account. */
+export const demoDataEnabled = !hasSupabaseConfig && process.env.EXPO_PUBLIC_DEMO_MODE === "1";
+
+if (!hasSupabaseConfig && !demoDataEnabled) {
+  console.warn(
+    "[supabase] EXPO_PUBLIC_SUPABASE_URL / EXPO_PUBLIC_SUPABASE_ANON_KEY are missing. " +
+      "Backend calls will fail. Set EXPO_PUBLIC_DEMO_MODE=1 to run on offline demo data instead."
+  );
+}
+
 export const supabase = createClient(supabaseUrl || "https://example.supabase.co", supabaseAnonKey || "anon-key", {
   auth: {
     storage: Platform.OS === "web" ? AsyncStorage : ExpoSecureStoreAdapter,
