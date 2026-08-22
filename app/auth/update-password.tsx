@@ -6,7 +6,7 @@ import { Snackbar, Text, TextInput } from "react-native-paper";
 import { AppButton } from "@/components/AppButton";
 import { ScreenContainer } from "@/components/ScreenContainer";
 import { colors, fonts } from "@/constants/theme";
-import { establishPasswordRecoverySession, updatePassword } from "@/lib/auth";
+import { establishSessionFromUrl, updatePassword } from "@/lib/auth";
 
 export default function UpdatePasswordScreen() {
   const recoveryUrl = Linking.useURL();
@@ -22,7 +22,7 @@ export default function UpdatePasswordScreen() {
     async function prepareSession() {
       try {
         const initialUrl = recoveryUrl ?? (await Linking.getInitialURL());
-        await establishPasswordRecoverySession(initialUrl);
+        await establishSessionFromUrl(initialUrl);
         if (mounted) setSessionReady(true);
       } catch (err) {
         if (mounted) setMessage(err instanceof Error ? err.message : "This reset link is invalid or expired.");

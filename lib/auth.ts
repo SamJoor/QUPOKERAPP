@@ -43,7 +43,12 @@ export async function signUp(email: string, password: string, fullName: string) 
   const { data, error } = await supabase.auth.signUp({
     email,
     password,
-    options: { data: { full_name: fullName } }
+    options: {
+      data: { full_name: fullName },
+      // Without this the confirmation link falls back to the project Site URL, which strands
+      // mobile users in a browser instead of returning them to the app. Mirrors resetPassword.
+      emailRedirectTo: Linking.createURL("/auth/confirm")
+    }
   });
   if (error) throw error;
   if (data.session?.user) {
@@ -64,7 +69,7 @@ export async function resetPassword(email: string) {
   if (error) throw error;
 }
 
-export async function establishPasswordRecoverySession(url: string | null) {
+export async function establishSessionFromUrl(url: string | null) {
   if (demoDataEnabled || !url) return;
 
   const parsed = new URL(url);
