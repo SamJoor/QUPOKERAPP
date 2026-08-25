@@ -69,8 +69,12 @@ export async function resetPassword(email: string) {
   if (error) throw error;
 }
 
-export async function establishSessionFromUrl(url: string | null) {
-  if (demoDataEnabled || !url) return;
+/** Returns true only when a session actually exists afterwards. Callers gate their
+ * submit button on this: returning void made "no token in the URL" indistinguishable
+ * from success, so the screen enabled itself and Supabase later threw AuthSessionMissing. */
+export async function establishSessionFromUrl(url: string | null): Promise<boolean> {
+  if (demoDataEnabled) return true;
+  if (!url) return false;
 
   const parsed = new URL(url);
   const hashParams = new URLSearchParams(parsed.hash.replace(/^#/, ""));
@@ -85,13 +89,24 @@ export async function establishSessionFromUrl(url: string | null) {
       refresh_token: refreshToken
     });
     if (error) throw error;
-    return;
+    return true;
   }
 
   if (code) {
     const { error } = await supabase.auth.exchangeCodeForSession(code);
     if (error) throw error;
+    return true;
   }
+
+  return false;
+}
+
+/** A recovery link is not the only way onto the password screen - an already signed-in
+ * user can reach it too, and they have a perfectly good session. */
+export async function hasSession(): Promise<boolean> {
+  if (demoDataEnabled) return true;
+  const { data } = await supabase.auth.getSession();
+  return Boolean(data.session);
 }
 
 export async function updatePassword(password: string) {

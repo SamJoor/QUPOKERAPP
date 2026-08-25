@@ -4,6 +4,7 @@ import * as Linking from "expo-linking";
 import { router } from "expo-router";
 import { Text } from "react-native-paper";
 import { AppButton } from "@/components/AppButton";
+import { BackButton } from "@/components/BackButton";
 import { ScreenContainer } from "@/components/ScreenContainer";
 import { colors, fonts } from "@/constants/theme";
 import { establishSessionFromUrl, getCurrentProfile } from "@/lib/auth";
@@ -56,6 +57,7 @@ export default function ConfirmScreen() {
   return (
     <ScreenContainer>
       <View style={styles.form}>
+        <BackButton fallback="/auth/login" />
         <View style={styles.header}>
           <Text style={styles.kicker}>Email confirmation</Text>
           <Text style={styles.title}>

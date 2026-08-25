@@ -4,9 +4,10 @@ import * as Linking from "expo-linking";
 import { router } from "expo-router";
 import { Snackbar, Text, TextInput } from "react-native-paper";
 import { AppButton } from "@/components/AppButton";
+import { BackButton } from "@/components/BackButton";
 import { ScreenContainer } from "@/components/ScreenContainer";
 import { colors, fonts } from "@/constants/theme";
-import { establishSessionFromUrl, updatePassword } from "@/lib/auth";
+import { establishSessionFromUrl, hasSession, updatePassword } from "@/lib/auth";
 
 export default function UpdatePasswordScreen() {
   const recoveryUrl = Linking.useURL();
@@ -22,8 +23,17 @@ export default function UpdatePasswordScreen() {
     async function prepareSession() {
       try {
         const initialUrl = recoveryUrl ?? (await Linking.getInitialURL());
-        await establishSessionFromUrl(initialUrl);
-        if (mounted) setSessionReady(true);
+        const established = await establishSessionFromUrl(initialUrl);
+        if (!mounted) return;
+        if (established || (await hasSession())) {
+          setSessionReady(true);
+          return;
+        }
+        // Only complain once a link has actually arrived - useURL is null on a cold start
+        // and would otherwise flash an error before the deep link resolves.
+        if (initialUrl) {
+          setMessage("This reset link is invalid or has already been used. Request a new one from Forgot Password.");
+        }
       } catch (err) {
         if (mounted) setMessage(err instanceof Error ? err.message : "This reset link is invalid or expired.");
       }
@@ -60,6 +70,7 @@ export default function UpdatePasswordScreen() {
   return (
     <ScreenContainer>
       <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : undefined} style={styles.form}>
+        <BackButton fallback="/auth/login" />
         <View style={styles.header}>
           <Text style={styles.kicker}>Account recovery</Text>
           <Text style={styles.title}>Set a new password</Text>
