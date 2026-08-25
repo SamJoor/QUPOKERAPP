@@ -83,6 +83,16 @@ export async function establishSessionFromUrl(url: string | null): Promise<boole
   const refreshToken = hashParams.get("refresh_token") ?? queryParams.get("refresh_token");
   const code = queryParams.get("code") ?? hashParams.get("code");
 
+  // Supabase reports a rejected link by redirecting WITH the error in the fragment rather
+  // than failing the request. Without this the screen fell through to "no token found" and
+  // surfaced Supabase's internal AuthSessionMissingError, which says nothing useful.
+  // A single-use link that a mail scanner already fetched lands here as otp_expired.
+  const errorCode = hashParams.get("error_code") ?? queryParams.get("error_code");
+  const errorDescription = hashParams.get("error_description") ?? queryParams.get("error_description");
+  if (errorCode || errorDescription) {
+    throw new Error(errorDescription || `This link was rejected (${errorCode}).`);
+  }
+
   if (accessToken && refreshToken) {
     const { error } = await supabase.auth.setSession({
       access_token: accessToken,
