@@ -72,6 +72,22 @@ export async function resetPassword(email: string) {
 /** Returns true only when a session actually exists afterwards. Callers gate their
  * submit button on this: returning void made "no token in the URL" indistinguishable
  * from success, so the screen enabled itself and Supabase later threw AuthSessionMissing. */
+/** Confirms a signup with the 6-digit code from the email template's {{ .Token }}.
+ * Codes replaced confirmation links because mail scanners fetch links in transit and a
+ * Supabase link is single-use, so users were tapping tokens that died before they arrived. */
+export async function verifySignupCode(email: string, token: string) {
+  if (demoDataEnabled) return null;
+  const { data, error } = await supabase.auth.verifyOtp({ email, token: token.trim(), type: "signup" });
+  if (error) throw error;
+  return data.user;
+}
+
+export async function resendSignupCode(email: string) {
+  if (demoDataEnabled) return;
+  const { error } = await supabase.auth.resend({ type: "signup", email });
+  if (error) throw error;
+}
+
 export async function establishSessionFromUrl(url: string | null): Promise<boolean> {
   if (demoDataEnabled) return true;
   if (!url) return false;

@@ -41,8 +41,11 @@ export default function SignupScreen() {
     try {
       const result = await signUp(normalizedEmail, password, fullName);
       if (!result.session) {
-        setMessage("Account created. Confirm your email if required, then log in to complete your profile.");
-        router.replace({ pathname: "/auth/login", params: params.next ? { next: params.next } : undefined });
+        // Confirmation is required, so there is no session yet - collect the emailed code.
+        router.replace({
+          pathname: "/auth/verify-code",
+          params: { email: normalizedEmail, fullName, next: params.next }
+        });
         return;
       }
       router.push({ pathname: "/onboarding/complete-profile", params: { id: result.user?.id, email: normalizedEmail, fullName, next: params.next } });
