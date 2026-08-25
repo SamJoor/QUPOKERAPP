@@ -9,8 +9,12 @@ import { colors, fonts } from "@/constants/theme";
 import { resendSignupCode, upsertProfile, verifySignupCode } from "@/lib/auth";
 
 const RESEND_COOLDOWN = 60;
+// Supabase's OTP length is a project setting - this one issues 8 digits, but accept the
+// 6-digit default too so the screen does not break if that setting is ever changed.
+const CODE_MIN = 6;
+const CODE_MAX = 8;
 
-/** Signup confirmation by 6-digit code rather than by emailed link. Supabase links are
+/** Signup confirmation by emailed code rather than by emailed link. Supabase links are
  * single-use and mail providers fetch them in transit, so users were arriving with a token
  * that had already been spent. A code cannot be consumed by anything that does not submit it. */
 export default function VerifyCodeScreen() {
@@ -28,8 +32,8 @@ export default function VerifyCodeScreen() {
   }, [cooldown]);
 
   async function submit() {
-    if (code.trim().length < 6) {
-      setMessage("Enter the 6-digit code from your email.");
+    if (code.trim().length < CODE_MIN) {
+      setMessage("Enter the full code from your email.");
       return;
     }
     setLoading(true);
@@ -69,22 +73,22 @@ export default function VerifyCodeScreen() {
           <Text style={styles.kicker}>Verify your email</Text>
           <Text style={styles.title}>Check your inbox.</Text>
           <Text style={styles.subtitle}>
-            We sent a 6-digit code to {email || "your email"}. Enter it below to finish creating your account.
+            We sent a verification code to {email || "your email"}. Enter it below to finish creating your account.
           </Text>
         </View>
         <View style={styles.panel}>
           <TextInput
-            label="6-digit code"
+            label="Verification code"
             value={code}
-            onChangeText={(value) => setCode(value.replace(/[^0-9]/g, "").slice(0, 6))}
+            onChangeText={(value) => setCode(value.replace(/[^0-9]/g, "").slice(0, CODE_MAX))}
             keyboardType="number-pad"
             autoComplete="one-time-code"
             textContentType="oneTimeCode"
-            maxLength={6}
+            maxLength={CODE_MAX}
             mode="outlined"
             style={styles.codeInput}
           />
-          <AppButton icon="check-circle-outline" onPress={submit} disabled={loading || code.length < 6}>
+          <AppButton icon="check-circle-outline" onPress={submit} disabled={loading || code.length < CODE_MIN}>
             {loading ? "Verifying..." : "Verify Email"}
           </AppButton>
           <AppButton mode="text" onPress={resend} disabled={cooldown > 0}>
