@@ -4,6 +4,7 @@ import { router, useLocalSearchParams } from "expo-router";
 import { Snackbar, Text, TextInput } from "react-native-paper";
 import { AppButton } from "@/components/AppButton";
 import { BackButton } from "@/components/BackButton";
+import { CheckEmailDialog } from "@/components/CheckEmailDialog";
 import { ScreenContainer } from "@/components/ScreenContainer";
 import { colors, fonts } from "@/constants/theme";
 import { resendSignupCode, upsertProfile, verifySignupCode } from "@/lib/auth";
@@ -24,6 +25,7 @@ export default function VerifyCodeScreen() {
   const [message, setMessage] = useState("");
   const [loading, setLoading] = useState(false);
   const [cooldown, setCooldown] = useState(RESEND_COOLDOWN);
+  const [checkEmailVisible, setCheckEmailVisible] = useState(true);
 
   useEffect(() => {
     if (cooldown <= 0) return;
@@ -59,7 +61,7 @@ export default function VerifyCodeScreen() {
     try {
       await resendSignupCode(email);
       setCooldown(RESEND_COOLDOWN);
-      setMessage("New code sent. It can take a minute to arrive.");
+      setCheckEmailVisible(true);
     } catch (err) {
       setMessage(err instanceof Error ? err.message : "Unable to send a new code.");
     }
@@ -99,6 +101,12 @@ export default function VerifyCodeScreen() {
           </Text>
         </View>
       </KeyboardAvoidingView>
+      <CheckEmailDialog
+        visible={checkEmailVisible}
+        onDismiss={() => setCheckEmailVisible(false)}
+        email={email}
+        variant="verification"
+      />
       <Snackbar visible={Boolean(message)} onDismiss={() => setMessage("")}>
         {message}
       </Snackbar>
