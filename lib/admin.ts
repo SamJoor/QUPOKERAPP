@@ -3,6 +3,10 @@ import { requireAdmin } from "./auth";
 import { demoEvents, demoLeaderboard, demoRewards, demoTournaments } from "./mockData";
 import { ClubEvent, Profile, Reward, Tournament } from "./types";
 
+/** events minus qr_code_token - see getAdminEvents. */
+const EVENT_ADMIN_COLUMNS =
+  "id, title, description, event_type, location, starts_at, ends_at, points_awarded, is_active, created_by, created_at, updated_at";
+
 /** Every export here gates on requireAdmin() BEFORE branching to demo data. The reverse
  * order let any caller read admin dashboards whenever the backend was unconfigured.
  * Demo mode seats a member-role profile, so admin screens are unavailable offline by design. */
@@ -115,9 +119,26 @@ export async function adjustMemberPoints(userId: string, points: number, reason:
 export async function getAdminEvents(): Promise<ClubEvent[]> {
   await requireAdmin();
   if (demoDataEnabled) return demoEvents;
-  const { data, error } = await supabase.from("events").select("*").order("starts_at", { ascending: false });
-  if (error) throw error;
-  return data ?? [];
+  // qr_code_token is revoked from the authenticated role (migration 019) so that members
+  // cannot read the check-in token straight out of the events table. Admins still need it
+  // to render the QR, so it comes back through an admin-gated function instead. "*" would
+  // fail here too - the revoke applies to admins as well, they just have the RPC.
+  const [events, tokens] = await Promise.all([
+    supabase.from("events").select(EVENT_ADMIN_COLUMNS).order("starts_at", { ascending: false }),
+    supabase.rpc("admin_event_qr_tokens")
+  ]);
+  if (events.error) throw events.error;
+  if (tokens.error) throw tokens.error;
+  const tokenById = new Map<string, string>(
+    ((tokens.data ?? []) as Array<{ event_id: string; qr_code_token: string }>).map((row) => [
+      row.event_id,
+      row.qr_code_token
+    ])
+  );
+  return ((events.data ?? []) as ClubEvent[]).map((event) => ({
+    ...event,
+    qr_code_token: tokenById.get(event.id) ?? ""
+  }));
 }
 
 export async function saveAdminEvent(event: Partial<ClubEvent>) {

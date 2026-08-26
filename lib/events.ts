@@ -2,6 +2,13 @@ import { supabase, demoDataEnabled } from "./supabase";
 import { demoEvents } from "./mockData";
 import { ClubEvent } from "./types";
 
+/** Every column of events EXCEPT qr_code_token. That token is the entire proof of physical
+ * presence for check-in, so members must not be able to read it - migration 019 revokes the
+ * column from anon and authenticated. PostgREST errors on a revoked column rather than
+ * omitting it, so "*" would break these queries outright. */
+const EVENT_PUBLIC_COLUMNS =
+  "id, title, description, event_type, location, starts_at, ends_at, points_awarded, is_active, created_by, created_at, updated_at";
+
 export async function getEvents(): Promise<ClubEvent[]> {
   const now = new Date().toISOString();
   if (demoDataEnabled) {
@@ -9,7 +16,7 @@ export async function getEvents(): Promise<ClubEvent[]> {
       .filter((event) => event.is_active && event.ends_at >= now)
       .sort((a, b) => new Date(a.starts_at).getTime() - new Date(b.starts_at).getTime());
   }
-  const { data, error } = await supabase.from("events").select("*").eq("is_active", true).gte("ends_at", now).order("starts_at");
+  const { data, error } = await supabase.from("events").select(EVENT_PUBLIC_COLUMNS).eq("is_active", true).gte("ends_at", now).order("starts_at");
   if (error) throw error;
   return data ?? [];
 }
@@ -23,7 +30,7 @@ export async function getPastEvents(): Promise<ClubEvent[]> {
   }
   const { data, error } = await supabase
     .from("events")
-    .select("*")
+    .select(EVENT_PUBLIC_COLUMNS)
     .eq("is_active", true)
     .lt("ends_at", now)
     .order("starts_at", { ascending: false });
@@ -38,7 +45,7 @@ export async function getNextEvent(): Promise<ClubEvent | null> {
 
 export async function getEvent(id: string): Promise<ClubEvent | null> {
   if (demoDataEnabled) return demoEvents.find((event) => event.id === id) ?? null;
-  const { data, error } = await supabase.from("events").select("*").eq("id", id).single();
+  const { data, error } = await supabase.from("events").select(EVENT_PUBLIC_COLUMNS).eq("id", id).single();
   if (error) throw error;
   return data;
 }

@@ -35,7 +35,9 @@ export type ClubEvent = {
   ends_at: string;
   event_type: EventType;
   points_awarded: number;
-  qr_code_token: string;
+  /** Admin-only. Members cannot read this column (migration 019), so it is absent
+   * from anything fetched through lib/events.ts. */
+  qr_code_token?: string;
   is_active: boolean;
   created_by?: string | null;
   created_at: string;
