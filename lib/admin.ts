@@ -101,13 +101,13 @@ export async function setMemberRole(userId: string, role: "member" | "admin") {
 export async function adjustMemberPoints(userId: string, points: number, reason: string) {
   await requireAdmin();
   if (demoDataEnabled) return;
-  const rpc = points >= 0 ? "award_points" : "redeem_points";
-  const { error } = await supabase.rpc(rpc, {
+  // Goes through admin_adjust_points rather than award_points/redeem_points directly:
+  // those two are no longer executable by end users at all (migration 018), because
+  // award_points let any member grant points to themselves.
+  const { error } = await supabase.rpc("admin_adjust_points", {
     p_user_id: userId,
-    p_points: Math.abs(points),
-    p_reason: reason,
-    p_source_type: "admin_adjustment",
-    p_source_id: null
+    p_points: points,
+    p_reason: reason
   });
   if (error) throw error;
 }
