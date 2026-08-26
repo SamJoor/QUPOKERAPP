@@ -72,6 +72,13 @@ export default function ProfileTabScreen() {
           <AppButton accessibilityLabel="Find and add club members" mode="outlined" icon="account-search-outline" onPress={() => router.push("/tabs/create-match")}>
             Find members
           </AppButton>
+          {/* This tab is the social profile. The account screen at /profile holds Log Out,
+              Delete Account and the Officer Console, and nothing else in the app navigates
+              there, so without this button all three are unreachable. Account deletion has
+              to be reachable for App Store guideline 5.1.1(v). */}
+          <AppButton accessibilityLabel="Account settings, log out, and delete account" mode="outlined" icon="cog-outline" onPress={() => router.push("/profile")}>
+            Account settings
+          </AppButton>
         </View>
 
         {pending.length ? (
