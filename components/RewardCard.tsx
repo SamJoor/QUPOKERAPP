@@ -34,7 +34,7 @@ const styles = StyleSheet.create({
   ribbonText: { color: colors.navyInk, fontFamily: fonts.extraBold, fontWeight: "900", fontSize: 11, textTransform: "uppercase", transform: [{ rotate: "-90deg" }] },
   row: { flexDirection: "row", alignItems: "center", justifyContent: "space-between" },
   badge: { backgroundColor: colors.greenSoft, borderRadius: 999, paddingHorizontal: 10, paddingVertical: 6, borderColor: colors.green, borderWidth: 1 },
-  kind: { color: colors.green, fontFamily: fonts.bold, fontSize: 11, fontWeight: "900" },
+  kind: { color: colors.gold, fontFamily: fonts.bold, fontSize: 11, fontWeight: "900" },
   title: { color: colors.text, fontFamily: fonts.bold, fontWeight: "900", fontSize: 19 },
   description: { color: colors.muted, fontFamily: fonts.regular, lineHeight: 20 }
 });

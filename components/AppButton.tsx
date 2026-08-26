@@ -21,6 +21,10 @@ export function AppButton({
   color?: string;
 }) {
   const accent = color ?? colors.green;
+  // colors.green is a navy (#0c355f). It reads fine as a filled background under white
+  // text, but as a label colour on the near-black page background it is invisible, so
+  // text and outlined buttons use gold unless the caller passes an explicit colour.
+  const labelAccent = color ?? colors.gold;
   const containedTextColor = color ? colors.ink : colors.text;
   return (
     <Button
@@ -32,7 +36,7 @@ export function AppButton({
       contentStyle={styles.content}
       labelStyle={styles.label}
       buttonColor={mode === "contained" ? accent : undefined}
-      textColor={mode === "contained" ? containedTextColor : accent}
+      textColor={mode === "contained" ? containedTextColor : labelAccent}
       style={[styles.button, mode === "outlined" && styles.outlined]}
     >
       {children}

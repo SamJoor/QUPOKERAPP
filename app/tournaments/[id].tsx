@@ -172,8 +172,8 @@ export default function TournamentDetailScreen() {
 const styles = StyleSheet.create({
   hero: { gap: 10, padding: 18, borderRadius: 22, backgroundColor: colors.greenSoft, borderColor: colors.green, borderWidth: 1 },
   row: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", gap: 10 },
-  status: { color: colors.green, fontWeight: "900", fontSize: 12 },
-  free: { color: colors.green, fontWeight: "900", fontSize: 12 },
+  status: { color: colors.gold, fontWeight: "900", fontSize: 12 },
+  free: { color: colors.gold, fontWeight: "900", fontSize: 12 },
   title: { color: colors.text, fontSize: 32, lineHeight: 38, fontWeight: "900" },
   meta: { color: colors.gold, fontWeight: "800" },
   body: { color: colors.muted, lineHeight: 22 },
@@ -191,7 +191,7 @@ const styles = StyleSheet.create({
   playerRow: { flexDirection: "row", justifyContent: "space-between", gap: 10, padding: 14, borderRadius: 16, backgroundColor: colors.surface, borderColor: colors.border, borderWidth: 1 },
   resultRow: { flexDirection: "row", justifyContent: "space-between", gap: 10, padding: 14, borderRadius: 16, backgroundColor: colors.surface, borderColor: colors.border, borderWidth: 1 },
   playerName: { color: colors.text, fontWeight: "800", flex: 1 },
-  playerStatus: { color: colors.green, fontWeight: "900" },
+  playerStatus: { color: colors.gold, fontWeight: "900" },
   points: { color: colors.gold, fontWeight: "900" },
   disclaimer: { color: colors.muted, fontSize: 12, lineHeight: 17 }
 });

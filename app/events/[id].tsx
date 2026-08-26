@@ -42,7 +42,7 @@ export default function EventDetailScreen() {
 
 const styles = StyleSheet.create({
   header: { flexDirection: "row", justifyContent: "space-between", alignItems: "center" },
-  type: { color: colors.green, fontWeight: "900" },
+  type: { color: colors.gold, fontWeight: "900" },
   title: { color: colors.text, fontSize: 32, fontWeight: "900", lineHeight: 38 },
   meta: { color: colors.gold, fontWeight: "800" },
   description: { color: colors.muted, lineHeight: 22 },

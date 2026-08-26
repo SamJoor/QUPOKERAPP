@@ -102,8 +102,12 @@ export const theme = {
   fonts: configureFonts({ config: fontConfig }),
   colors: {
     ...MD3DarkTheme.colors,
-    primary: colors.green,
-    secondary: colors.gold,
+    // Paper paints accents (input focus outlines, snackbar actions, selection controls)
+    // with primary. The navy has too little contrast against the dark surfaces to serve
+    // as an accent, so gold takes that role and the navy stays a fill colour.
+    primary: colors.gold,
+    onPrimary: colors.ink,
+    secondary: colors.felt,
     background: colors.background,
     surface: colors.surface,
     surfaceVariant: colors.surfaceSoft,

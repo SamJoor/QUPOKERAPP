@@ -1,7 +1,7 @@
 import { Tabs } from "expo-router";
 import { BlurView } from "expo-blur";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
-import { Dimensions, StyleSheet, View } from "react-native";
+import { StyleSheet, useWindowDimensions, View } from "react-native";
 import { colors, radii, tabBar } from "@/constants/theme";
 import { LoadingState } from "@/components/StateViews";
 import { ScreenContainer } from "@/components/ScreenContainer";
@@ -9,8 +9,6 @@ import { VectorPlayersMark, VectorTicketMark } from "@/components/VectorMotifs";
 import { useRequireSession } from "@/hooks/useRequireSession";
 
 type NavGlyph = "events" | "dashboard" | "social";
-
-const tabBarWidth = Math.min(Dimensions.get("window").width - 44, 346);
 
 function NavIcon({ focused, glyph }: { focused: boolean; glyph: NavGlyph }) {
   const color = focused ? colors.ink : "rgba(247,248,250,0.58)";
@@ -29,6 +27,13 @@ function NavIcon({ focused, glyph }: { focused: boolean; glyph: NavGlyph }) {
 
 export default function TabLayout() {
   const checkingSession = useRequireSession();
+  // Measured at render rather than at module load: Dimensions.get("window") can be read
+  // before the window is sized, and the old "left: 50% + translateX(-width/2)" centering
+  // resolved its percentage against a container React Navigation owns, not the screen,
+  // which pushed the bar off to the left. Equal left/right insets centre it by layout.
+  const { width: windowWidth } = useWindowDimensions();
+  const barWidth = Math.min(windowWidth - 44, 346);
+  const horizontalInset = Math.max(0, (windowWidth - barWidth) / 2);
 
   if (checkingSession) {
     return (
@@ -47,7 +52,7 @@ export default function TabLayout() {
         tabBarShowLabel: false,
         tabBarItemStyle: styles.tabItem,
         tabBarBackground: () => <BlurView intensity={36} tint="dark" style={styles.tabBlur} />,
-        tabBarStyle: styles.tabBar
+        tabBarStyle: [styles.tabBar, { left: horizontalInset, right: horizontalInset }]
       }}
     >
       <Tabs.Screen
@@ -86,10 +91,7 @@ const styles = StyleSheet.create({
   tabBar: {
     position: "absolute",
     height: tabBar.height,
-    width: tabBarWidth,
-    left: "50%",
     bottom: tabBar.bottomInset,
-    transform: [{ translateX: -tabBarWidth / 2 }],
     paddingHorizontal: 10,
     paddingTop: 8,
     paddingBottom: 8,

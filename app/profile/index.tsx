@@ -207,7 +207,7 @@ const styles = StyleSheet.create({
   rowText: { flex: 1, gap: 3 },
   rowTitle: { color: colors.text, fontWeight: "800" },
   rowMeta: { color: colors.muted, fontSize: 12 },
-  points: { color: colors.green, fontWeight: "900", fontSize: 18 },
+  points: { color: colors.gold, fontWeight: "900", fontSize: 18 },
   negative: { color: colors.red },
   disclaimer: { color: colors.muted, fontSize: 12, lineHeight: 17 }
 });

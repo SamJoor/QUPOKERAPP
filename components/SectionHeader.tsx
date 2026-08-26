@@ -21,5 +21,5 @@ export function SectionHeader({ title, action, actionLabel, onAction }: { title:
 const styles = StyleSheet.create({
   row: { flexDirection: "row", justifyContent: "space-between", alignItems: "center" },
   title: { color: colors.text, fontWeight: "900" },
-  action: { color: colors.green, fontWeight: "800" }
+  action: { color: colors.gold, fontWeight: "800" }
 });

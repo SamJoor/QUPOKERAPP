@@ -28,7 +28,7 @@ const styles = StyleSheet.create({
   topRank: { backgroundColor: colors.gold },
   rank: { color: colors.navyInk, fontFamily: fonts.extraBold, fontWeight: "900" },
   avatar: { backgroundColor: colors.greenSoft },
-  avatarText: { color: colors.green, fontWeight: "900" },
+  avatarText: { color: colors.gold, fontWeight: "900" },
   info: { flex: 1, gap: 4 },
   name: { color: colors.text, fontFamily: fonts.bold, fontWeight: "900" },
   meta: { color: colors.muted, fontFamily: fonts.regular, fontSize: 12 },

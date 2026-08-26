@@ -73,7 +73,7 @@ const styles = StyleSheet.create({
   info: { flex: 1, gap: 4 },
   name: { color: colors.text, fontWeight: "900", fontSize: 18 },
   email: { color: colors.muted },
-  role: { color: colors.green, fontWeight: "900", fontSize: 12 },
+  role: { color: colors.gold, fontWeight: "900", fontSize: 12 },
   pointStack: { alignItems: "flex-end", gap: 4 },
   spendable: { color: colors.muted, fontSize: 12, fontWeight: "800" }
 });

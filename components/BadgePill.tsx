@@ -12,5 +12,5 @@ export function BadgePill({ label }: { label: string }) {
 
 const styles = StyleSheet.create({
   badge: { alignSelf: "flex-start", paddingHorizontal: 10, paddingVertical: 6, borderRadius: 999, backgroundColor: colors.greenSoft },
-  text: { color: colors.green, fontWeight: "800", fontSize: 12 }
+  text: { color: colors.gold, fontWeight: "800", fontSize: 12 }
 });

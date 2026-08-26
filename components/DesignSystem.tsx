@@ -209,7 +209,7 @@ const styles = StyleSheet.create({
   collectibleStamp: { width: 70, height: 88, borderRadius: 24, alignItems: "center", justifyContent: "center", backgroundColor: colors.goldSoft, borderColor: colors.gold, borderWidth: 1.5 },
   collectibleStampText: { color: colors.navyInk, fontFamily: fonts.extraBold, fontWeight: "900", fontSize: 22 },
   collectibleBody: { flex: 1, gap: 4 },
-  collectibleType: { color: colors.green, fontFamily: fonts.bold, fontWeight: "900", fontSize: 11 },
+  collectibleType: { color: colors.gold, fontFamily: fonts.bold, fontWeight: "900", fontSize: 11 },
   collectibleTitle: { color: colors.text, fontFamily: fonts.bold, fontWeight: "900", fontSize: 18 },
   collectibleSubtitle: { color: colors.muted, fontFamily: fonts.regular, lineHeight: 18, fontSize: 12 },
   costCoin: { width: 66, minHeight: 74, borderRadius: 24, alignItems: "center", justifyContent: "center", backgroundColor: colors.goldSoft, borderColor: colors.gold, borderWidth: 1.5, gap: 1 },

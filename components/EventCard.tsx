@@ -32,7 +32,7 @@ const styles = StyleSheet.create({
   card: { padding: 16, gap: 10 },
   row: { flexDirection: "row", alignItems: "center", justifyContent: "space-between" },
   badge: { backgroundColor: colors.greenSoft, borderColor: colors.green, borderWidth: 1, borderRadius: 999, paddingHorizontal: 10, paddingVertical: 6 },
-  type: { color: colors.green, fontFamily: fonts.bold, fontSize: 11, fontWeight: "900", letterSpacing: 0 },
+  type: { color: colors.gold, fontFamily: fonts.bold, fontSize: 11, fontWeight: "900", letterSpacing: 0 },
   title: { color: colors.text, fontFamily: fonts.bold, fontWeight: "900", fontSize: 19, lineHeight: 23 },
   meta: { color: colors.gold, fontFamily: fonts.semibold, fontWeight: "700", fontSize: 12 },
   description: { color: colors.muted, fontFamily: fonts.regular, lineHeight: 20 }
