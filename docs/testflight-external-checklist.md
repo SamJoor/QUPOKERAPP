@@ -18,6 +18,14 @@ It does not check your store listing.
 - Migration `021_fix_event_qr_column_grant` applied — table-level SELECT on `events` is gone
   and the column list is granted back
 - Export compliance handled by `ITSAppUsesNonExemptEncryption: false` in `app.json`
+- **Demo account created and verified 2026-08-26** — `qupoker.demo@gmail.com`, user
+  `61f60ebd-9dc5-4c09-b0c7-7a5a6ae85690`. The password is deliberately not recorded here: this
+  repo is public and `docs/` is served by GitHub Pages, and the account is an admin on the
+  production database. It lives in `.env.local` as `DEMO_ACCOUNT_PASSWORD` and in App Store
+  Connect. Confirmed at creation with
+  no email sent, `role = 'admin'`, student ID `DEMO0001`. Password sign-in returns a session,
+  the profile reads back through RLS, and the admin-only `admin_event_qr_tokens` RPC answers
+  200, so the officer console is reachable.
 
 ## Still to do
 
@@ -39,15 +47,28 @@ processing after upload before the build can be attached to a group.
 The whole app is behind auth, and a reviewer cannot self-register because signup requires an
 8-digit code emailed to an address they do not control.
 
-1. Sign up in the app with an email you control
-2. Confirm it with the emailed code
-3. Promote it to admin so the officer console is reachable:
+Scripted. Put a service role key in `.env.local` (gitignored via `.env.*`, and **not** given an
+`EXPO_PUBLIC_` prefix, which would inline it into the shipped bundle):
 
-```sql
-update public.profiles set role = 'admin' where email = '<demo email>';
+```
+SUPABASE_SERVICE_ROLE_KEY=eyJ...
 ```
 
-4. Sign out and sign back in once to prove the credentials work
+Get it from Supabase: Project Settings -> API -> Project API keys -> service_role -> Reveal.
+
+```bash
+node scripts/create-demo-account.mjs
+```
+
+That creates the account with `email_confirm: true`, so no code is ever sent, then patches the
+profile to `role = 'admin'` with a student ID and grad year so the reviewer lands on the
+dashboard instead of the onboarding form. It prints the credentials to paste into ASC. Re-runs
+are safe: an existing account gets its password reset and confirmation forced.
+
+Sign in with the printed credentials once on a device before submitting.
+
+Already run on 2026-08-26 — see the verified list above. Re-run it only to rotate the password
+or rebuild the account.
 
 ### 3. Test Information
 
@@ -101,7 +122,8 @@ There are no deposits, withdrawals, cash-outs, or payment features of any kind.
 QR scanning is used to check in to in-person club meetings. Camera access is
 requested only on that screen.
 
-Account deletion is available in-app under Profile > Delete Account.
+Account deletion is available in-app under Profile > Account settings > Delete Account.
+The Officer Console is in the same place.
 ```
 
 ### 5. Create the group and enable the link
