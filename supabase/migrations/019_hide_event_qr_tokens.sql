@@ -20,6 +20,10 @@
 -- check_in_event still reads the column: it is security definer and executes as the
 -- owner, which retains the grant.
 
+-- SUPERSEDED BY 021: this statement is a no-op. A column-level REVOKE does not carve an
+-- exception out of the table-level SELECT grant that Supabase issues on public.events, so
+-- this ran cleanly and changed nothing. 021 revokes the table grant and grants back the
+-- readable columns. Left here so the migration history still applies in order.
 revoke select (qr_code_token) on public.events from anon, authenticated;
 
 -- Admins still need the token to render and print the QR codes.
