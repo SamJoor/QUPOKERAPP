@@ -57,8 +57,8 @@
       "expo-font"
     ],
     "extra": {
-      "supportUrl": "https://qupoker.app/support",
-      "privacyPolicyUrl": "https://qupoker.app/privacy",
+      "supportUrl": "https://samjoor.github.io/QUPOKERAPP/support.html",
+      "privacyPolicyUrl": "https://samjoor.github.io/QUPOKERAPP/privacy.html",
       "router": {
         "origin": false
       },
