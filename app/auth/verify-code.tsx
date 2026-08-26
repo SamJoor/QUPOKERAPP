@@ -84,7 +84,9 @@ export default function VerifyCodeScreen() {
             value={code}
             onChangeText={(value) => setCode(value.replace(/[^0-9]/g, "").slice(0, CODE_MAX))}
             keyboardType="number-pad"
-            autoComplete="one-time-code"
+            // "one-time-code" is the iOS hint; Android's autofill vocabulary calls it
+            // "sms-otp". Passing the iOS value on Android just disables autofill silently.
+            autoComplete={Platform.OS === "android" ? "sms-otp" : "one-time-code"}
             textContentType="oneTimeCode"
             maxLength={CODE_MAX}
             mode="outlined"
