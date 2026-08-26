@@ -141,6 +141,16 @@ export async function updatePassword(password: string) {
   if (error) throw error;
 }
 
+/** App Store guideline 5.1.1(v) requires in-app account deletion for any app with signup.
+ * Removing the auth user cascades through profiles and everything that references it;
+ * migration 020 nulls the two audit columns that would otherwise block the delete. */
+export async function deleteOwnAccount() {
+  if (demoDataEnabled) return;
+  const { error } = await supabase.rpc("delete_own_account");
+  if (error) throw error;
+  await supabase.auth.signOut();
+}
+
 export async function signOut() {
   if (demoDataEnabled) return;
   const { error } = await supabase.auth.signOut();

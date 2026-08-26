@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { Pressable, StyleSheet, View } from "react-native";
 import { router } from "expo-router";
 import * as ImagePicker from "expo-image-picker";
-import { Snackbar, Text, TextInput } from "react-native-paper";
+import { Dialog, Portal, Snackbar, Text, TextInput } from "react-native-paper";
 import { AppButton } from "@/components/AppButton";
 import { BackButton } from "@/components/BackButton";
 import { LabHeader, LabPanel, MissionTile } from "@/components/DesignSystem";
@@ -13,7 +13,7 @@ import { StatCard } from "@/components/StatCard";
 import { LoadingState } from "@/components/StateViews";
 import { avatarKeys, avatarLibrary, AvatarKey, resolveAvatarSource } from "@/constants/avatarAssets";
 import { colors, disclaimer } from "@/constants/theme";
-import { getCurrentProfile, signOut, updateOwnProfile, uploadProfileAvatar } from "@/lib/auth";
+import { deleteOwnAccount, getCurrentProfile, signOut, updateOwnProfile, uploadProfileAvatar } from "@/lib/auth";
 import { getMyPointHistory } from "@/lib/points";
 import { getMyRewardRedemptions, RewardRedemption } from "@/lib/rewards";
 import { LedgerEntry, Profile } from "@/lib/types";
@@ -23,6 +23,8 @@ export default function ProfileScreen() {
   const [history, setHistory] = useState<LedgerEntry[]>([]);
   const [redemptions, setRedemptions] = useState<RewardRedemption[]>([]);
   const [editing, setEditing] = useState(false);
+  const [deleteVisible, setDeleteVisible] = useState(false);
+  const [deleting, setDeleting] = useState(false);
   const [fullName, setFullName] = useState("");
   const [studentId, setStudentId] = useState("");
   const [graduationYear, setGraduationYear] = useState("");
@@ -187,13 +189,52 @@ export default function ProfileScreen() {
       {profile.role === "admin" ? <AppButton icon="shield-account-outline" onPress={() => router.push("/admin")}>Officer Console</AppButton> : null}
       <AppButton mode="outlined" icon="information-outline" onPress={() => router.push("/about")}>About & Rules</AppButton>
       <AppButton mode="outlined" icon="logout" onPress={async () => { await signOut(); router.replace("/"); }}>Log Out</AppButton>
+      <AppButton mode="text" icon="account-remove-outline" color={colors.red} onPress={() => setDeleteVisible(true)}>
+        Delete Account
+      </AppButton>
       <Text style={styles.disclaimer}>{disclaimer}</Text>
+      <Portal>
+        <Dialog visible={deleteVisible} onDismiss={() => setDeleteVisible(false)} style={styles.deleteDialog}>
+          <Dialog.Title style={styles.deleteTitle}>Delete your account?</Dialog.Title>
+          <Dialog.Content>
+            <Text style={styles.deleteBody}>
+              This permanently removes your profile, points, check-ins and redemptions. It cannot be
+              undone, and your points cannot be restored if you sign up again.
+            </Text>
+          </Dialog.Content>
+          <Dialog.Actions>
+            <AppButton mode="text" onPress={() => setDeleteVisible(false)}>Cancel</AppButton>
+            <AppButton
+              mode="text"
+              color={colors.red}
+              disabled={deleting}
+              onPress={async () => {
+                setDeleting(true);
+                try {
+                  await deleteOwnAccount();
+                  setDeleteVisible(false);
+                  router.replace("/");
+                } catch (err) {
+                  setMessage(err instanceof Error ? err.message : "Unable to delete your account.");
+                } finally {
+                  setDeleting(false);
+                }
+              }}
+            >
+              {deleting ? "Deleting..." : "Delete"}
+            </AppButton>
+          </Dialog.Actions>
+        </Dialog>
+      </Portal>
       <Snackbar visible={Boolean(message)} onDismiss={() => setMessage("")}>{message}</Snackbar>
     </ScreenContainer>
   );
 }
 
 const styles = StyleSheet.create({
+  deleteDialog: { backgroundColor: colors.surface, borderRadius: 22, borderColor: colors.border, borderWidth: 1 },
+  deleteTitle: { color: colors.text, fontWeight: "900" },
+  deleteBody: { color: colors.muted, lineHeight: 21 },
   pickerLabel: { color: colors.muted, fontSize: 12, fontWeight: "800", textTransform: "uppercase" },
   avatarPicker: { flexDirection: "row", gap: 12 },
   avatarOption: { padding: 4, borderRadius: 999, borderWidth: 2, borderColor: "transparent" },
