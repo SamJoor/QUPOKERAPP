@@ -42,11 +42,11 @@ export default function PastTournamentsScreen() {
       <Text style={styles.title}>Past Tournaments</Text>
       <Text style={styles.subtitle}>Historical placements and recognition points from completed friendly club tournaments.</Text>
       {loading ? <LoadingState label="Loading tournament history..." /> : error ? <ErrorState message={error} onRetry={load} /> : rows.length ? rows.map((tournament) => (
-        <Pressable key={tournament.id} style={styles.card} onPress={() => router.push(`/tournaments/${tournament.id}`)}>
+        <Pressable accessibilityLabel={tournament.title} key={tournament.id} style={styles.card} onPress={() => router.push(`/tournaments/${tournament.id}`)}>
           <Text style={styles.name}>{tournament.title}</Text>
           <Text style={styles.meta}>{new Date(tournament.starts_at).toLocaleDateString()} · {tournament.registered_count}/{tournament.max_players} players</Text>
           {tournament.results.length ? tournament.results.slice(0, 5).map((result) => (
-            <Pressable key={`${tournament.id}-${result.user_id}`} style={styles.resultRow} onPress={() => router.push(`/members/${result.user_id}`)}>
+            <Pressable accessibilityLabel={`${result.full_name}, placement ${result.placement}`} key={`${tournament.id}-${result.user_id}`} style={styles.resultRow} onPress={() => router.push(`/members/${result.user_id}`)}>
               <Text style={styles.player}>#{result.placement} {result.full_name}</Text>
               <Text style={styles.points}>+{result.points_awarded}</Text>
             </Pressable>

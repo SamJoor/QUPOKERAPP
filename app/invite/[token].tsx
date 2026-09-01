@@ -34,9 +34,12 @@ export default function PokerInviteScreen() {
     }
     setLoading(true);
     try {
-      const response = await acceptPokerInvite(token);
+      const response = (await acceptPokerInvite(token)) as { message?: string; match_id?: string };
       setAccepted(true);
       setMessage(response?.message ?? "Practice match joined.");
+      if (response?.match_id) {
+        router.replace({ pathname: "/tabs/live-match/[matchId]", params: { matchId: response.match_id } });
+      }
     } catch (error) {
       setMessage(error instanceof Error ? error.message : "Unable to accept invite.");
     } finally {
@@ -52,12 +55,12 @@ export default function PokerInviteScreen() {
       <PokerCard title={accepted ? "You are in" : "Invite Ready"}>
         <Text style={styles.copy}>
           {accepted
-            ? "The match invite has been accepted. Online live tables are being wired through Supabase Realtime, so head back to Play to keep practicing."
+            ? "The match invite has been accepted. Taking you to the live table now."
             : "Accept this invite to reserve your seat in the friendly practice match."}
         </Text>
         <View style={styles.actions}>
           {!accepted ? <AppButton icon="cards-playing-outline" onPress={acceptInvite} disabled={loading}>{loading ? "Joining..." : "Accept Invite"}</AppButton> : null}
-          <AppButton mode="outlined" icon="play-circle-outline" onPress={() => router.replace("/tabs/play")}>Open Poker Arena</AppButton>
+          <AppButton mode="outlined" icon="view-dashboard-outline" onPress={() => router.replace("/tabs/dashboard")}>Back to Dashboard</AppButton>
         </View>
       </PokerCard>
       <Text style={styles.disclaimer}>{disclaimer}</Text>

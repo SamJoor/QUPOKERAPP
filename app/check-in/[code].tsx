@@ -38,5 +38,5 @@ export default function CheckInScreen() {
 
 const styles = StyleSheet.create({
   title: { color: colors.text, fontSize: 34, fontWeight: "900" },
-  message: { color: colors.green, fontSize: 20, lineHeight: 28, fontWeight: "800" }
+  message: { color: colors.gold, fontSize: 20, lineHeight: 28, fontWeight: "800" }
 });

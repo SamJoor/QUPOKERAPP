@@ -17,6 +17,7 @@ export type Profile = {
   graduation_year?: number | null;
   major?: string | null;
   avatar_url?: string | null;
+  avatar_key?: string | null;
   role: Role;
   total_points: number;
   lifetime_points: number;
@@ -34,7 +35,9 @@ export type ClubEvent = {
   ends_at: string;
   event_type: EventType;
   points_awarded: number;
-  qr_code_token: string;
+  /** Admin-only. Members cannot read this column (migration 019), so it is absent
+   * from anything fetched through lib/events.ts. */
+  qr_code_token?: string;
   is_active: boolean;
   created_by?: string | null;
   created_at: string;
@@ -84,6 +87,7 @@ export type LeaderboardEntry = {
   user_id: string;
   full_name: string;
   avatar_url?: string | null;
+  avatar_key?: string | null;
   total_points: number;
   rank: number;
 };
@@ -92,6 +96,7 @@ export type PublicMemberProfile = {
   user_id: string;
   full_name: string;
   avatar_url?: string | null;
+  avatar_key?: string | null;
   major?: string | null;
   graduation_year?: number | null;
   total_points: number;

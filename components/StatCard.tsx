@@ -1,29 +1,34 @@
 import { StyleSheet, View } from "react-native";
 import { Text } from "react-native-paper";
-import { colors, fonts, shadows } from "@/constants/theme";
+import { colors, fonts } from "@/constants/theme";
+import { GlassPanel } from "./GlassPanel";
 
 export function StatCard({ label, value, tone = "green" }: { label: string; value: string | number; tone?: "green" | "gold" | "blue" }) {
   const accent = tone === "gold" ? colors.gold : tone === "blue" ? colors.blue : colors.green;
   return (
-    <View style={styles.card}>
-      <View style={[styles.dot, { backgroundColor: accent }]} />
-      <Text style={[styles.value, { color: accent }]}>{value}</Text>
+    <GlassPanel style={styles.card} contentStyle={styles.content} gradient={[colors.surfaceGlow, colors.cardBlack]}>
+      <View style={[styles.accent, { backgroundColor: accent }]} />
       <Text style={styles.label}>{label}</Text>
-    </View>
+      <Text style={[styles.value, { color: accent }]}>{value}</Text>
+    </GlassPanel>
   );
 }
 
 const styles = StyleSheet.create({
   card: {
     flex: 1,
-    minHeight: 108,
-    backgroundColor: colors.surfaceRaised,
-    borderColor: colors.borderStrong,
-    borderWidth: 1.5,
-    borderRadius: 24,
-    padding: 16,
+    minHeight: 106
+  },
+  content: {
+    minHeight: 106,
     justifyContent: "space-between",
-    ...shadows.card
+    padding: 16
+  },
+  accent: {
+    width: 34,
+    height: 4,
+    borderRadius: 999,
+    opacity: 0.95
   },
   dot: { width: 12, height: 12, borderRadius: 99, alignSelf: "flex-end" },
   label: { color: colors.muted, fontFamily: fonts.semibold, fontWeight: "700", fontSize: 12, textTransform: "uppercase" },

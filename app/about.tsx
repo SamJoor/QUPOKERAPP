@@ -27,7 +27,7 @@ export default function AboutScreen() {
 const styles = StyleSheet.create({
   title: { color: colors.text, fontSize: 34, fontWeight: "900" },
   body: { color: colors.muted, lineHeight: 23, fontSize: 16 },
-  rule: { color: colors.green, lineHeight: 24, fontWeight: "900", fontSize: 17 },
+  rule: { color: colors.gold, lineHeight: 24, fontWeight: "900", fontSize: 17 },
   disclaimer: { color: colors.gold, lineHeight: 22, fontWeight: "800" },
   privacy: { color: colors.muted, fontSize: 13, lineHeight: 19 }
 });

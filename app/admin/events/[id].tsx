@@ -137,7 +137,7 @@ const styles = StyleSheet.create({
   qrText: { color: colors.muted, textAlign: "center", lineHeight: 20 },
   token: { color: colors.gold, fontSize: 12, fontWeight: "800", textAlign: "center" },
   summary: { flexDirection: "row", alignItems: "baseline", gap: 8 },
-  summaryNumber: { color: colors.green, fontSize: 34, fontWeight: "900" },
+  summaryNumber: { color: colors.gold, fontSize: 34, fontWeight: "900" },
   summaryLabel: { color: colors.muted, fontWeight: "800" },
   attendanceRow: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", gap: 12, padding: 14, borderRadius: 18, backgroundColor: colors.surface, borderColor: colors.border, borderWidth: 1 },
   memberInfo: { flex: 1, gap: 3 },

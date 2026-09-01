@@ -1,4 +1,5 @@
-import { supabase, hasSupabaseConfig } from "./supabase";
+import { supabase, demoDataEnabled } from "./supabase";
+import { Card } from "./poker";
 
 export type QueueStatus = "waiting" | "matched" | "cancelled";
 export type PokerMatchType = "bot" | "friend" | "queue";
@@ -25,7 +26,7 @@ export type PokerMatchAction = {
 };
 
 export async function joinPokerQueue(preferredLevel = "Club Regular") {
-  if (!hasSupabaseConfig) {
+  if (demoDataEnabled) {
     return { status: "waiting", message: "Demo mode queue is simulated until Supabase is connected." };
   }
   const { data, error } = await supabase.rpc("join_poker_queue", { p_preferred_level: preferredLevel });
@@ -34,13 +35,13 @@ export async function joinPokerQueue(preferredLevel = "Club Regular") {
 }
 
 export async function leavePokerQueue() {
-  if (!hasSupabaseConfig) return;
+  if (demoDataEnabled) return;
   const { error } = await supabase.rpc("leave_poker_queue");
   if (error) throw error;
 }
 
 export async function createFriendPokerMatch(friendId: string) {
-  if (!hasSupabaseConfig) {
+  if (demoDataEnabled) {
     return { match_id: "demo-friend-match", status: "waiting" };
   }
   const { data, error } = await supabase.rpc("create_friend_poker_match", { p_friend_id: friendId });
@@ -55,7 +56,7 @@ export function buildPokerInviteLink(inviteToken: string) {
 }
 
 export async function createPokerInvite() {
-  if (!hasSupabaseConfig) {
+  if (demoDataEnabled) {
     const invite_token = "demo-invite";
     return {
       invite_token,
@@ -70,7 +71,7 @@ export async function createPokerInvite() {
 }
 
 export async function acceptPokerInvite(inviteToken: string) {
-  if (!hasSupabaseConfig) {
+  if (demoDataEnabled) {
     return { status: "accepted", match_id: "demo-open-match", message: "Demo invite accepted." };
   }
   const { data, error } = await supabase.rpc("accept_poker_invite", { p_invite_token: inviteToken });
@@ -78,8 +79,24 @@ export async function acceptPokerInvite(inviteToken: string) {
   return data;
 }
 
+export type PokerMatchPlayer = { seat: 1 | 2; user_id: string | null; display_name: string };
+export type PokerMatchWithPlayers = PokerMatch & { players: PokerMatchPlayer[] };
+
+export async function getPokerMatch(matchId: string): Promise<PokerMatchWithPlayers | null> {
+  if (demoDataEnabled) return null;
+  const { data, error } = await supabase
+    .from("poker_matches")
+    .select("*, poker_match_players(seat, user_id, display_name)")
+    .eq("id", matchId)
+    .maybeSingle();
+  if (error) throw error;
+  if (!data) return null;
+  const { poker_match_players, ...match } = data as unknown as PokerMatch & { poker_match_players: PokerMatchPlayer[] };
+  return { ...match, players: poker_match_players ?? [] };
+}
+
 export async function getMyActivePokerMatches(): Promise<PokerMatch[]> {
-  if (!hasSupabaseConfig) return [];
+  if (demoDataEnabled) return [];
   const { data, error } = await supabase
     .from("poker_matches")
     .select("*, poker_match_players!inner(user_id)")
@@ -90,7 +107,7 @@ export async function getMyActivePokerMatches(): Promise<PokerMatch[]> {
 }
 
 export async function getMyPokerMatchHistory(): Promise<PokerMatch[]> {
-  if (!hasSupabaseConfig) return [];
+  if (demoDataEnabled) return [];
   const { data, error } = await supabase
     .from("poker_matches")
     .select("*, poker_match_players!inner(user_id)")
@@ -101,14 +118,14 @@ export async function getMyPokerMatchHistory(): Promise<PokerMatch[]> {
 }
 
 export async function getPokerMatchActions(matchId: string): Promise<PokerMatchAction[]> {
-  if (!hasSupabaseConfig) return [];
+  if (demoDataEnabled) return [];
   const { data, error } = await supabase.rpc("get_poker_match_history", { p_match_id: matchId });
   if (error) throw error;
   return (data ?? []) as PokerMatchAction[];
 }
 
 export async function updatePokerMatchState(matchId: string, actionType: string, payload: Record<string, unknown>, gameState: Record<string, unknown>, nextTurnUserId?: string | null) {
-  if (!hasSupabaseConfig) return gameState;
+  if (demoDataEnabled) return gameState;
   const { data, error } = await supabase.rpc("update_poker_match_state", {
     p_match_id: matchId,
     p_action_type: actionType,
@@ -120,8 +137,36 @@ export async function updatePokerMatchState(matchId: string, actionType: string,
   return data as Record<string, unknown>;
 }
 
+export async function dealPokerMatch(matchId: string) {
+  if (demoDataEnabled) return { dealt: true };
+  const { data, error } = await supabase.rpc("deal_poker_match", { p_match_id: matchId });
+  if (error && !/already dealt/i.test(error.message)) throw error;
+  return data;
+}
+
+export async function getMyHoleCards(matchId: string): Promise<Card[]> {
+  if (demoDataEnabled) return [];
+  const { data, error } = await supabase.rpc("get_my_hole_cards", { p_match_id: matchId });
+  if (error) throw error;
+  return (data ?? []) as Card[];
+}
+
+export async function getShowdownHoleCards(matchId: string): Promise<{ user_id: string; cards: Card[] }[]> {
+  if (demoDataEnabled) return [];
+  const { data, error } = await supabase.rpc("get_showdown_hole_cards", { p_match_id: matchId });
+  if (error) throw error;
+  return (data ?? []) as { user_id: string; cards: Card[] }[];
+}
+
+export async function revealCommunityStreet(matchId: string, street: "flop" | "turn" | "river" | "showdown"): Promise<Record<string, unknown>> {
+  if (demoDataEnabled) return {};
+  const { data, error } = await supabase.rpc("reveal_community_street", { p_match_id: matchId, p_street: street });
+  if (error) throw error;
+  return data as Record<string, unknown>;
+}
+
 export function subscribeToPokerMatch(matchId: string, onChange: () => void) {
-  if (!hasSupabaseConfig) return { unsubscribe: () => undefined };
+  if (demoDataEnabled) return { unsubscribe: () => undefined };
   const channel = supabase
     .channel(`poker-match-${matchId}`)
     .on("postgres_changes", { event: "*", schema: "public", table: "poker_matches", filter: `id=eq.${matchId}` }, onChange)

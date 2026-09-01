@@ -10,6 +10,7 @@ builds/
 
 expo-start.log
 expo-start.err
+expo-web.log
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*

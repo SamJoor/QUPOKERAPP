@@ -1,4 +1,4 @@
-import { supabase, hasSupabaseConfig } from "./supabase";
+import { supabase, demoDataEnabled } from "./supabase";
 import { demoLeaderboard } from "./mockData";
 import { LeaderboardEntry, PublicMemberProfile } from "./types";
 
@@ -6,6 +6,7 @@ type LeaderboardRpcRow = {
   user_id: string;
   full_name: string;
   avatar_url?: string | null;
+  avatar_key?: string | null;
   total_points: number;
   rank: number | string;
 };
@@ -19,27 +20,28 @@ export function getBadge(points: number) {
 }
 
 export async function getMonthlyLeaderboard(): Promise<LeaderboardEntry[]> {
-  if (!hasSupabaseConfig) return demoLeaderboard;
+  if (demoDataEnabled) return demoLeaderboard;
   const { data, error } = await supabase.rpc("get_monthly_leaderboard");
   if (error) throw error;
   return data ?? [];
 }
 
 export async function getAllTimeLeaderboard(): Promise<LeaderboardEntry[]> {
-  if (!hasSupabaseConfig) return demoLeaderboard;
+  if (demoDataEnabled) return demoLeaderboard;
   const { data, error } = await supabase.rpc("get_all_time_leaderboard");
   if (error) throw error;
   return ((data ?? []) as LeaderboardRpcRow[]).map((row) => ({
     user_id: row.user_id,
     full_name: row.full_name,
     avatar_url: row.avatar_url,
+    avatar_key: row.avatar_key,
     total_points: row.total_points,
     rank: Number(row.rank)
   }));
 }
 
 export async function getPublicMemberProfile(userId: string): Promise<PublicMemberProfile | null> {
-  if (!hasSupabaseConfig) {
+  if (demoDataEnabled) {
     const row = demoLeaderboard.find((entry) => entry.user_id === userId) ?? demoLeaderboard[0];
     return {
       user_id: row.user_id,

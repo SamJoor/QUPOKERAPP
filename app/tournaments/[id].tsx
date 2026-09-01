@@ -139,7 +139,7 @@ export default function TournamentDetailScreen() {
 
       <Text style={styles.section}>Registered Players</Text>
       {registrations.length ? registrations.map((registration, index) => (
-        <Pressable key={registration.user_id} style={styles.playerRow} onPress={() => router.push(`/members/${registration.user_id}`)}>
+        <Pressable accessibilityLabel={registration.full_name} key={registration.user_id} style={styles.playerRow} onPress={() => router.push(`/members/${registration.user_id}`)}>
           <Text style={styles.playerName}>{index + 1}. {registration.full_name}</Text>
           <Text style={styles.playerStatus}>
             {registration.table_number && registration.seat_number ? `T${registration.table_number} S${registration.seat_number}` : registration.status}
@@ -149,7 +149,7 @@ export default function TournamentDetailScreen() {
 
       <Text style={styles.section}>Tables</Text>
       {tableSeats.length ? tableSeats.map((seat) => (
-        <Pressable key={`${seat.table_id}-${seat.seat_number}`} style={styles.playerRow} onPress={() => router.push(`/members/${seat.user_id}`)}>
+        <Pressable accessibilityLabel={seat.full_name} key={`${seat.table_id}-${seat.seat_number}`} style={styles.playerRow} onPress={() => router.push(`/members/${seat.user_id}`)}>
           <Text style={styles.playerName}>Table {seat.table_number}, Seat {seat.seat_number}</Text>
           <Text style={styles.playerStatus}>{seat.full_name}</Text>
         </Pressable>
@@ -157,7 +157,7 @@ export default function TournamentDetailScreen() {
 
       <Text style={styles.section}>Results</Text>
       {results.length ? results.map((result) => (
-        <Pressable key={result.user_id} style={styles.resultRow} onPress={() => router.push(`/members/${result.user_id}`)}>
+        <Pressable accessibilityLabel={`${result.full_name}, placement ${result.placement}`} key={result.user_id} style={styles.resultRow} onPress={() => router.push(`/members/${result.user_id}`)}>
           <Text style={styles.playerName}>#{result.placement} {result.full_name}</Text>
           <Text style={styles.points}>+{result.points_awarded}</Text>
         </Pressable>
@@ -172,8 +172,8 @@ export default function TournamentDetailScreen() {
 const styles = StyleSheet.create({
   hero: { gap: 10, padding: 18, borderRadius: 22, backgroundColor: colors.greenSoft, borderColor: colors.green, borderWidth: 1 },
   row: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", gap: 10 },
-  status: { color: colors.green, fontWeight: "900", fontSize: 12 },
-  free: { color: colors.green, fontWeight: "900", fontSize: 12 },
+  status: { color: colors.gold, fontWeight: "900", fontSize: 12 },
+  free: { color: colors.gold, fontWeight: "900", fontSize: 12 },
   title: { color: colors.text, fontSize: 32, lineHeight: 38, fontWeight: "900" },
   meta: { color: colors.gold, fontWeight: "800" },
   body: { color: colors.muted, lineHeight: 22 },
@@ -191,7 +191,7 @@ const styles = StyleSheet.create({
   playerRow: { flexDirection: "row", justifyContent: "space-between", gap: 10, padding: 14, borderRadius: 16, backgroundColor: colors.surface, borderColor: colors.border, borderWidth: 1 },
   resultRow: { flexDirection: "row", justifyContent: "space-between", gap: 10, padding: 14, borderRadius: 16, backgroundColor: colors.surface, borderColor: colors.border, borderWidth: 1 },
   playerName: { color: colors.text, fontWeight: "800", flex: 1 },
-  playerStatus: { color: colors.green, fontWeight: "900" },
+  playerStatus: { color: colors.gold, fontWeight: "900" },
   points: { color: colors.gold, fontWeight: "900" },
   disclaimer: { color: colors.muted, fontSize: 12, lineHeight: 17 }
 });

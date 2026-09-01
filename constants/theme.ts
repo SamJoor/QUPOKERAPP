@@ -1,35 +1,47 @@
 import { configureFonts, MD3DarkTheme } from "react-native-paper";
 
 export const colors = {
-  background: "#06152f",
-  backgroundAlt: "#09204a",
-  surface: "#102a5c",
-  surfaceSoft: "#173872",
-  surfaceRaised: "#1c4382",
-  cardTop: "#1f57a5",
-  border: "#2e5e9f",
-  borderStrong: "#5b8ed5",
-  text: "#f8fbff",
-  muted: "#bfd0ea",
-  green: "#58a8ff",
-  greenSoft: "#123c7a",
-  gold: "#ffd052",
-  goldSoft: "#4b3507",
-  red: "#ff6b6b",
-  blue: "#8fc4ff",
-  navyInk: "#031025",
-  success: "#63df9c",
-  track: "#071a3a"
+  background: "#020407",
+  backgroundAlt: "#070b12",
+  surface: "#0e1219",
+  surfaceSoft: "#151b24",
+  surfaceGlow: "#10223a",
+  surfaceElevated: "rgba(255,255,255,0.06)",
+  surfaceRaised: "#1b222d",
+  cardTop: "#17202c",
+  border: "rgba(247,248,250,0.08)",
+  borderSoft: "rgba(255,255,255,0.05)",
+  borderStrong: "rgba(247,248,250,0.16)",
+  text: "#f7f8fa",
+  muted: "#8f98a5",
+  green: "#0c355f",
+  greenSoft: "#0b1725",
+  felt: "#42d99a",
+  feltSoft: "#0d2d24",
+  lime: "#d6a536",
+  limeSoft: "#2b210e",
+  gold: "#d6a536",
+  goldSoft: "#2b210e",
+  rose: "#d66a7b",
+  roseSoft: "#3a1723",
+  red: "#e25a5f",
+  blue: "#6d9fd6",
+  ink: "#050608",
+  navyInk: "#050608",
+  cardBlack: "#080b10",
+  warning: "#ffaa4c",
+  success: "#42d99a",
+  track: "#0a111a"
 };
 
 export const fonts = {
-  heading: "Barlow_800ExtraBold",
-  headingSemibold: "Barlow_700Bold",
-  regular: "Barlow_400Regular",
-  medium: "Barlow_500Medium",
-  semibold: "Barlow_600SemiBold",
-  bold: "Barlow_700Bold",
-  extraBold: "Barlow_800ExtraBold"
+  heading: "Fraunces_900Black",
+  headingSemibold: "Fraunces_700Bold",
+  regular: "Manrope_400Regular",
+  medium: "Manrope_500Medium",
+  semibold: "Manrope_600SemiBold",
+  bold: "Manrope_700Bold",
+  extraBold: "Manrope_800ExtraBold"
 };
 
 const fontConfig = {
@@ -50,14 +62,52 @@ const fontConfig = {
   bodySmall: { fontFamily: fonts.regular }
 };
 
+export const spacing = {
+  xxs: 4,
+  xs: 8,
+  sm: 12,
+  md: 16,
+  lg: 20,
+  xl: 24,
+  xxl: 32,
+  xxxl: 40
+};
+
+/** Floating tab bar geometry. Screens must leave `tabBar.clearance` of bottom padding
+ * so the absolutely-positioned bar never sits on top of their last row. */
+export const tabBar = {
+  height: 72,
+  bottomInset: 14,
+  clearance: 72 + 14 + 16
+};
+
+export const radii = {
+  sm: 12,
+  md: 18,
+  lg: 24,
+  xl: 30,
+  pill: 999
+};
+
+export const typography = {
+  sectionTitle: 18,
+  body: 15,
+  meta: 12,
+  balance: 72
+};
+
 export const theme = {
   ...MD3DarkTheme,
   roundness: 18,
   fonts: configureFonts({ config: fontConfig }),
   colors: {
     ...MD3DarkTheme.colors,
-    primary: colors.green,
-    secondary: colors.gold,
+    // Paper paints accents (input focus outlines, snackbar actions, selection controls)
+    // with primary. The navy has too little contrast against the dark surfaces to serve
+    // as an accent, so gold takes that role and the navy stays a fill colour.
+    primary: colors.gold,
+    onPrimary: colors.ink,
+    secondary: colors.felt,
     background: colors.background,
     surface: colors.surface,
     surfaceVariant: colors.surfaceSoft,
@@ -91,4 +141,4 @@ export const shadows = {
 };
 
 export const disclaimer =
-  "This app is for poker strategy education, club engagement, and non-gambling competition only. No real-money wagering is supported.";
+  "This app is for poker strategy education, club engagement, and friendly competition only. No real-money gambling, deposits, withdrawals, or cash-outs are supported.";

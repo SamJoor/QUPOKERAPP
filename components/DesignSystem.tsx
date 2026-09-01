@@ -66,7 +66,7 @@ export function MissionTile({
 }) {
   const accent = gold ? colors.gold : colors.green;
   return (
-    <Pressable disabled={!onPress} onPress={onPress} style={({ pressed }) => [styles.mission, pressed && styles.pressed]}>
+    <Pressable accessibilityLabel={`${title}. ${body}`} disabled={!onPress} onPress={onPress} style={({ pressed }) => [styles.mission, pressed && styles.pressed]}>
       <View style={[styles.missionIcon, { backgroundColor: accent }]}>
         {gold ? <QUChip size={42} label="PTS" /> : <SuitPip suit={stepSuit(title)} size={22} />}
       </View>
@@ -99,7 +99,7 @@ export function StrategyTile({
   onPress?: () => void;
 }) {
   return (
-    <Pressable disabled={!onPress} onPress={onPress} style={({ pressed }) => [styles.strategyTile, pressed && styles.pressed]}>
+    <Pressable accessibilityLabel={`${title}, ${value} ${label}`} disabled={!onPress} onPress={onPress} style={({ pressed }) => [styles.strategyTile, pressed && styles.pressed]}>
       <View style={styles.strategyIcon}>
         <SuitPip suit={title.includes("Bot") ? "club" : title.includes("Trainer") ? "diamond" : "spade"} size={20} gold={title.includes("Trainer")} />
       </View>
@@ -124,7 +124,7 @@ export function CollectibleFrame({
   onPress: () => void;
 }) {
   return (
-    <Pressable onPress={onPress} style={({ pressed }) => [styles.collectible, pressed && styles.pressed]}>
+    <Pressable accessibilityLabel={`${title}, ${cost} points`} onPress={onPress} style={({ pressed }) => [styles.collectible, pressed && styles.pressed]}>
       <View style={styles.collectibleStamp}>
         <QUChip size={58} />
       </View>
@@ -155,7 +155,7 @@ export function PodiumStrip({
 }) {
   const isTop = rank <= 3;
   return (
-    <Pressable disabled={!onPress} onPress={onPress} style={({ pressed }) => [styles.podium, isTop && styles.podiumTop, pressed && styles.pressed]}>
+    <Pressable accessibilityLabel={`${name}, rank ${rank}, ${points} points`} disabled={!onPress} onPress={onPress} style={({ pressed }) => [styles.podium, isTop && styles.podiumTop, pressed && styles.pressed]}>
       <View style={[styles.podiumRank, isTop && styles.podiumRankTop]}>
         <Text style={styles.podiumRankText}>{rank}</Text>
       </View>
@@ -171,8 +171,8 @@ export function PodiumStrip({
 export function FormShell({ children, title, subtitle }: PropsWithChildren<{ title: string; subtitle: string }>) {
   return (
     <View style={styles.formShell}>
-      <View style={styles.formMark}>
-        <QUChip size={64} />
+      <View style={[styles.badge, styles.earlyAccessBadge, { borderColor: colors.gold }]}>
+        <Text style={[styles.badgeText, { color: colors.gold }]}>Early Access</Text>
       </View>
       <SuitRail />
       <Text style={styles.formTitle}>{title}</Text>
@@ -209,7 +209,7 @@ const styles = StyleSheet.create({
   collectibleStamp: { width: 70, height: 88, borderRadius: 24, alignItems: "center", justifyContent: "center", backgroundColor: colors.goldSoft, borderColor: colors.gold, borderWidth: 1.5 },
   collectibleStampText: { color: colors.navyInk, fontFamily: fonts.extraBold, fontWeight: "900", fontSize: 22 },
   collectibleBody: { flex: 1, gap: 4 },
-  collectibleType: { color: colors.green, fontFamily: fonts.bold, fontWeight: "900", fontSize: 11 },
+  collectibleType: { color: colors.gold, fontFamily: fonts.bold, fontWeight: "900", fontSize: 11 },
   collectibleTitle: { color: colors.text, fontFamily: fonts.bold, fontWeight: "900", fontSize: 18 },
   collectibleSubtitle: { color: colors.muted, fontFamily: fonts.regular, lineHeight: 18, fontSize: 12 },
   costCoin: { width: 66, minHeight: 74, borderRadius: 24, alignItems: "center", justifyContent: "center", backgroundColor: colors.goldSoft, borderColor: colors.gold, borderWidth: 1.5, gap: 1 },
@@ -225,8 +225,7 @@ const styles = StyleSheet.create({
   podiumMeta: { color: colors.muted, fontFamily: fonts.regular, fontSize: 12 },
   podiumPoints: { color: colors.gold, fontFamily: fonts.extraBold, fontWeight: "900", fontSize: 20 },
   formShell: { gap: 12, padding: 20, borderRadius: 34, backgroundColor: colors.surfaceRaised, borderColor: colors.borderStrong, borderWidth: 1.5, ...shadows.card },
-  formMark: { width: 64, height: 64, alignItems: "center", justifyContent: "center" },
-  formMarkText: { color: colors.navyInk, fontFamily: fonts.extraBold, fontWeight: "900", fontSize: 22 },
+  earlyAccessBadge: { alignSelf: "flex-start", backgroundColor: colors.goldSoft },
   formTitle: { color: colors.text, fontFamily: fonts.heading, fontWeight: "900", fontSize: 42, lineHeight: 43 },
   formSubtitle: { color: colors.muted, fontFamily: fonts.regular, lineHeight: 22 },
   formBody: { gap: 12, marginTop: 4 }

@@ -16,7 +16,7 @@ const statusTone: Record<TournamentOverview["status"], string> = {
 export function TournamentCard({ tournament, onPress, featured = false }: { tournament: TournamentOverview; onPress: () => void; featured?: boolean }) {
   const capacity = Math.min(100, Math.round((tournament.registered_count / tournament.max_players) * 100));
   return (
-    <Pressable onPress={onPress} style={({ pressed }) => [styles.card, featured && styles.featured, pressed && styles.pressed]}>
+    <Pressable accessibilityLabel={`${tournament.title}, ${tournament.status.replace("_", " ")}`} onPress={onPress} style={({ pressed }) => [styles.card, featured && styles.featured, pressed && styles.pressed]}>
       <View style={styles.crownBand}>
         <Text style={styles.crownText}>{featured ? "Featured Sit & Go" : "Club Tournament"}</Text>
         <ChipStack />
@@ -70,7 +70,7 @@ const styles = StyleSheet.create({
   topRow: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", gap: 10, paddingHorizontal: 16 },
   statusBadge: { borderWidth: 1, borderRadius: 999, paddingHorizontal: 10, paddingVertical: 6, backgroundColor: colors.backgroundAlt },
   status: { fontFamily: fonts.bold, fontWeight: "900", fontSize: 12 },
-  free: { color: colors.green, fontFamily: fonts.bold, fontWeight: "900", fontSize: 12 },
+  free: { color: colors.gold, fontFamily: fonts.bold, fontWeight: "900", fontSize: 12 },
   name: { color: colors.text, fontFamily: fonts.bold, fontSize: 19, fontWeight: "900", lineHeight: 24, paddingHorizontal: 16 },
   featuredName: { color: colors.text, fontFamily: fonts.extraBold, fontSize: 25, fontWeight: "900", lineHeight: 30, paddingHorizontal: 16 },
   meta: { color: colors.gold, fontFamily: fonts.semibold, fontWeight: "800", fontSize: 12, paddingHorizontal: 16 },
