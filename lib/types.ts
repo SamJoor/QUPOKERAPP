@@ -98,7 +98,6 @@ export type LeaderboardEntry = {
 export type MemberContactCard = {
   user_id: string;
   full_name: string;
-  email: string;
   avatar_url?: string | null;
   avatar_key?: string | null;
 };
