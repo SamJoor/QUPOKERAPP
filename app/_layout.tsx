@@ -9,6 +9,11 @@ import {
   useFonts as useFrauncesFonts
 } from "@expo-google-fonts/fraunces";
 import {
+  InstrumentSans_400Regular,
+  InstrumentSans_500Medium,
+  useFonts as useInstrumentSansFonts
+} from "@expo-google-fonts/instrument-sans";
+import {
   Manrope_400Regular,
   Manrope_500Medium,
   Manrope_600SemiBold,
@@ -32,7 +37,11 @@ export default function RootLayout() {
     Manrope_700Bold,
     Manrope_800ExtraBold
   });
-  const fontsLoaded = frauncesLoaded && manropeLoaded;
+  const [instrumentSansLoaded] = useInstrumentSansFonts({
+    InstrumentSans_400Regular,
+    InstrumentSans_500Medium
+  });
+  const fontsLoaded = frauncesLoaded && manropeLoaded && instrumentSansLoaded;
 
   if (!fontsLoaded) {
     return null;
@@ -51,6 +60,24 @@ export default function RootLayout() {
         <Stack.Screen name="auth/verify-code" options={{ gestureEnabled: false }} />
         <Stack.Screen name="onboarding/complete-profile" options={{ gestureEnabled: false }} />
         <Stack.Screen name="tabs" options={{ gestureEnabled: false }} />
+        <Stack.Screen
+          name="offline-setup"
+          options={{
+            animation: "none",
+            contentStyle: { backgroundColor: "transparent" },
+            gestureEnabled: false,
+            presentation: "transparentModal"
+          }}
+        />
+        <Stack.Screen
+          name="play"
+          options={{
+            animation: "none",
+            contentStyle: { backgroundColor: "transparent" },
+            gestureEnabled: false,
+            presentation: "transparentModal"
+          }}
+        />
         <Stack.Screen name="events/[id]" />
         <Stack.Screen name="invite/[token]" />
         <Stack.Screen name="members/[id]" />

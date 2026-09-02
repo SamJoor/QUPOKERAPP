@@ -2,8 +2,8 @@ import { ClubEvent, LeaderboardEntry, LedgerEntry, Profile, Reward, Tournament }
 
 export const demoProfile: Profile = {
   id: "demo-user",
-  full_name: "Sebastian Quinn",
-  email: "alex@qu.edu",
+  full_name: "Sebastian Salazar",
+  email: "sebastian@qu.edu",
   student_id: null,
   graduation_year: 2027,
   major: "Finance",
@@ -11,9 +11,9 @@ export const demoProfile: Profile = {
   // Demo data must never confer privileges. Admin screens are verified against a real
   // session via requireAdmin(); see lib/auth.ts.
   role: "member",
-  total_points: 520,
-  lifetime_points: 520,
-  spendable_points: 520,
+  total_points: 690,
+  lifetime_points: 690,
+  spendable_points: 2000,
   created_at: new Date().toISOString(),
   updated_at: new Date().toISOString()
 };
@@ -79,11 +79,11 @@ export const demoRewards: Reward[] = [
 ];
 
 export const demoLeaderboard: LeaderboardEntry[] = [
-  { user_id: "1", full_name: "Maya Chen", total_points: 820, rank: 1 },
-  { user_id: "2", full_name: "Jordan Lee", total_points: 690, rank: 2 },
-  { user_id: "demo-user", full_name: "Sebastian Quinn", total_points: 520, rank: 3 },
-  { user_id: "4", full_name: "Sam Patel", total_points: 380, rank: 4 },
-  { user_id: "5", full_name: "Nia Brooks", total_points: 330, rank: 5 }
+  { user_id: "antonio-rosado", full_name: "Antonio Rosado", email: "antonio.rosado@qu.edu", total_points: 820, daily_wins: 18, rank: 1, movement: "up" },
+  { user_id: "sam-joor", full_name: "Sam Joor", email: "sam.joor@qu.edu", total_points: 520, daily_wins: 14, rank: 2, movement: "down" },
+  { user_id: "josh-venditto", full_name: "Josh Venditto", email: "josh.venditto@qu.edu", total_points: 380, daily_wins: 11, rank: 3 },
+  { user_id: "michael-alvarado", full_name: "Michael Alvarado", email: "michael.alvarado@qu.edu", total_points: 330, daily_wins: 8, rank: 4, movement: "up" },
+  { user_id: "quinn-crawford", full_name: "Quinn Crawford", email: "quinn.crawford@qu.edu", total_points: 275, daily_wins: 6, rank: 5, movement: "steady" }
 ];
 
 export const demoLedger: LedgerEntry[] = [

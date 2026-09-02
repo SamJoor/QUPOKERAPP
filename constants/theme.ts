@@ -1,8 +1,8 @@
 import { configureFonts, MD3DarkTheme } from "react-native-paper";
 
 export const colors = {
-  background: "#020407",
-  backgroundAlt: "#070b12",
+  background: "#000000",
+  backgroundAlt: "#000000",
   surface: "#0e1219",
   surfaceSoft: "#151b24",
   surfaceGlow: "#10223a",
@@ -26,7 +26,7 @@ export const colors = {
   roseSoft: "#3a1723",
   red: "#e25a5f",
   blue: "#6d9fd6",
-  ink: "#050608",
+  ink: "#000000",
   navyInk: "#050608",
   cardBlack: "#080b10",
   warning: "#ffaa4c",

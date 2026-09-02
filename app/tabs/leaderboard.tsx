@@ -4,6 +4,7 @@ import { SegmentedButtons } from "react-native-paper";
 import { LabHeader, PodiumStrip } from "@/components/DesignSystem";
 import { ScreenContainer } from "@/components/ScreenContainer";
 import { ErrorState, LoadingState } from "@/components/StateViews";
+import { resolveAvatarSource } from "@/constants/avatarAssets";
 import { getAllTimeLeaderboard, getMonthlyLeaderboard } from "@/lib/leaderboard";
 import { LeaderboardEntry } from "@/lib/types";
 
@@ -33,8 +34,8 @@ export default function LeaderboardScreen() {
           { value: "all", label: "All-time" }
         ]}
       />
-      {loading ? <LoadingState /> : error ? <ErrorState message={error} /> : rows.map((entry) => (
-        <PodiumStrip key={entry.user_id} rank={entry.rank} name={entry.full_name} points={entry.total_points} onPress={() => router.push(`/members/${entry.user_id}`)} />
+      {loading ? <LoadingState /> : error ? <ErrorState message={error} /> : rows.map((entry, index) => (
+        <PodiumStrip key={entry.user_id} rank={entry.rank} name={entry.full_name} points={entry.total_points} avatarSource={resolveAvatarSource(entry, index)} onPress={() => router.push(`/members/${entry.user_id}`)} />
       ))}
     </ScreenContainer>
   );

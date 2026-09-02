@@ -86,10 +86,21 @@ export type LedgerEntry = {
 export type LeaderboardEntry = {
   user_id: string;
   full_name: string;
+  email?: string | null;
   avatar_url?: string | null;
   avatar_key?: string | null;
   total_points: number;
+  daily_wins?: number;
   rank: number;
+  movement?: "up" | "down" | "steady";
+};
+
+export type MemberContactCard = {
+  user_id: string;
+  full_name: string;
+  email: string;
+  avatar_url?: string | null;
+  avatar_key?: string | null;
 };
 
 export type PublicMemberProfile = {

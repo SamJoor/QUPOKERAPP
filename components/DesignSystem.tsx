@@ -1,8 +1,9 @@
 import { PropsWithChildren, ReactNode } from "react";
-import { Pressable, StyleSheet, View, ViewStyle } from "react-native";
+import { ImageSourcePropType, Pressable, StyleSheet, View, ViewStyle } from "react-native";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { Text } from "react-native-paper";
 import { colors, fonts, shadows } from "@/constants/theme";
+import { ProfileAvatar } from "./ProfileAvatar";
 import { CardFan, QUChip, SuitPip, SuitRail } from "./PokerMotifs";
 
 type IconName = keyof typeof MaterialCommunityIcons.glyphMap;
@@ -146,11 +147,13 @@ export function PodiumStrip({
   rank,
   name,
   points,
+  avatarSource,
   onPress
 }: {
   rank: number;
   name: string;
   points: number;
+  avatarSource?: ImageSourcePropType;
   onPress?: () => void;
 }) {
   const isTop = rank <= 3;
@@ -159,6 +162,7 @@ export function PodiumStrip({
       <View style={[styles.podiumRank, isTop && styles.podiumRankTop]}>
         <Text style={styles.podiumRankText}>{rank}</Text>
       </View>
+      <ProfileAvatar size={48} source={avatarSource} />
       <View style={styles.podiumCopy}>
         <Text style={styles.podiumName}>{name}</Text>
         <Text style={styles.podiumMeta}>{isTop ? "Podium pace" : "Climbing"}</Text>

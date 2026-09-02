@@ -4,12 +4,27 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { LinearGradient } from "expo-linear-gradient";
 import { colors, tabBar } from "@/constants/theme";
 
-type Props = PropsWithChildren<{ scroll?: boolean; padded?: boolean | "safe" }>;
+type Props = PropsWithChildren<{
+  scroll?: boolean;
+  padded?: boolean | "safe";
+  fill?: boolean;
+  reserveTabBarSpace?: boolean;
+}>;
 
-export function ScreenContainer({ children, scroll = true, padded = true }: Props) {
+export function ScreenContainer({
+  children,
+  scroll = true,
+  padded = true,
+  fill = false,
+  reserveTabBarSpace = true
+}: Props) {
   const isFullPadded = padded === true;
   const isSafePadded = padded === "safe";
-  const content = <View style={[styles.content, !isFullPadded && styles.fullBleedContent]}>{children}</View>;
+  const content = (
+    <View style={[styles.content, !isFullPadded && styles.fullBleedContent, fill && styles.fillContent]}>
+      {children}
+    </View>
+  );
   return (
     <SafeAreaView style={styles.safe} edges={["top", "left", "right"]}>
       <LinearGradient colors={[colors.backgroundAlt, colors.background, colors.ink]} style={styles.backdrop}>
@@ -18,8 +33,8 @@ export function ScreenContainer({ children, scroll = true, padded = true }: Prop
             contentContainerStyle={[
               styles.scroll,
               isFullPadded && styles.scrollPadded,
-              isSafePadded && styles.scrollSafePadded,
-              !isFullPadded && !isSafePadded && styles.scrollFullBleed
+              isSafePadded && reserveTabBarSpace && styles.scrollSafePadded,
+              !isFullPadded && !isSafePadded && reserveTabBarSpace && styles.scrollFullBleed
             ]}
             showsVerticalScrollIndicator={false}
           >
@@ -30,8 +45,8 @@ export function ScreenContainer({ children, scroll = true, padded = true }: Prop
             style={[
               styles.staticWrap,
               isFullPadded && styles.staticPadded,
-              isSafePadded && styles.staticSafePadded,
-              !isFullPadded && !isSafePadded && styles.staticFullBleed
+              isSafePadded && reserveTabBarSpace && styles.staticSafePadded,
+              !isFullPadded && !isSafePadded && reserveTabBarSpace && styles.staticFullBleed
             ]}
           >
             {content}
@@ -54,5 +69,6 @@ const styles = StyleSheet.create({
   staticSafePadded: { paddingBottom: tabBar.clearance },
   staticFullBleed: { paddingBottom: tabBar.clearance },
   content: { gap: 16, width: "100%", maxWidth: 398 },
-  fullBleedContent: { maxWidth: "100%" }
+  fullBleedContent: { maxWidth: "100%" },
+  fillContent: { flex: 1 }
 });

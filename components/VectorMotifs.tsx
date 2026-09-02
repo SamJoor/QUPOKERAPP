@@ -126,6 +126,103 @@ export function VectorPlayersMark({ size = 24, color = colors.text }: { size?: n
   );
 }
 
+type TabMarkProps = {
+  size?: number;
+  color?: string;
+  filled?: boolean;
+};
+
+export function VectorEventsTabMark({
+  size = 28,
+  color = colors.text,
+  filled = false
+}: TabMarkProps) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 64 64" fill="none">
+      {filled ? (
+        <>
+          <Rect x="7" y="15" width="50" height="44" rx="10" fill={color} />
+          <Path d="M7 28h50" stroke={colors.ink} strokeWidth="4.5" />
+          <Circle cx="21.5" cy="39.5" r="3.5" fill={colors.ink} />
+          <Circle cx="42.5" cy="39.5" r="3.5" fill={colors.ink} />
+          <Circle cx="21.5" cy="51.5" r="3.5" fill={colors.ink} />
+          <Circle cx="42.5" cy="51.5" r="3.5" fill={colors.ink} />
+        </>
+      ) : (
+        <>
+          <Rect x="7" y="15" width="50" height="44" rx="10" stroke={color} strokeWidth="4.5" />
+          <Path d="M7 28h50M20 8v13M44 8v13" stroke={color} strokeWidth="4.5" strokeLinecap="round" />
+          <Circle cx="21.5" cy="39.5" r="3.5" fill={color} />
+          <Circle cx="42.5" cy="39.5" r="3.5" fill={color} />
+          <Circle cx="21.5" cy="51.5" r="3.5" fill={color} />
+          <Circle cx="42.5" cy="51.5" r="3.5" fill={color} />
+        </>
+      )}
+    </Svg>
+  );
+}
+
+export function VectorHomeTabMark({
+  size = 28,
+  color = colors.text,
+  filled = false
+}: TabMarkProps) {
+  if (filled) {
+    return (
+      <Svg width={size} height={size} viewBox="0 0 64 64" fill="none">
+        <Path
+          d="M5.8 29.8 27.9 9.5a6 6 0 0 1 8.2 0l22.1 20.3a4.5 4.5 0 0 1-3.1 7.8H53V53a6 6 0 0 1-6 6H17a6 6 0 0 1-6-6V37.6H8.9a4.5 4.5 0 0 1-3.1-7.8Z"
+          fill={color}
+        />
+        <Rect x="24.5" y="47" width="15" height="6" rx="3" fill={colors.ink} />
+      </Svg>
+    );
+  }
+
+  return (
+    <Svg width={size} height={size} viewBox="0 0 64 64" fill="none">
+      <Path
+        d="M5.5 31 28 10.5a5.8 5.8 0 0 1 8 0L58.5 31M11 35v18a5.5 5.5 0 0 0 5.5 5.5h31A5.5 5.5 0 0 0 53 53V35M24 58.5V45a4 4 0 0 1 4-4h8a4 4 0 0 1 4 4v13.5"
+        stroke={color}
+        strokeWidth="5"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </Svg>
+  );
+}
+
+export function VectorProfileTabMark({
+  size = 28,
+  color = colors.text,
+  filled = false
+}: TabMarkProps) {
+  if (filled) {
+    return (
+      <Svg width={size} height={size} viewBox="0 0 64 64" fill="none">
+        <Circle cx="32" cy="18" r="12" fill={color} />
+        <Path
+          d="M6.5 55.2C8.4 41 18 33.5 32 33.5S55.6 41 57.5 55.2c.3 2-1.2 3.3-3.1 3.3H9.6c-1.9 0-3.4-1.3-3.1-3.3Z"
+          fill={color}
+        />
+      </Svg>
+    );
+  }
+
+  return (
+    <Svg width={size} height={size} viewBox="0 0 64 64" fill="none">
+      <Circle cx="32" cy="18" r="11" stroke={color} strokeWidth="5" />
+      <Path
+        d="M8 55.5C9.8 42 18.5 35 32 35s22.2 7 24 20.5c.2 1.6-.9 2.5-2.5 2.5h-43C8.9 58 7.8 57.1 8 55.5Z"
+        stroke={color}
+        strokeWidth="5"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </Svg>
+  );
+}
+
 export function VectorDealMark({ size = 30, color = colors.gold }: { size?: number; color?: string }) {
   return (
     <Svg width={size} height={size} viewBox="0 0 64 64">

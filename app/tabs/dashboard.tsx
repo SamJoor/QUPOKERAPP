@@ -1,71 +1,257 @@
-import { useCallback, useState } from "react";
-import { Pressable, ScrollView, StyleSheet, View } from "react-native";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { Animated, Easing, Image, ImageSourcePropType, Modal, PanResponder, Platform, Pressable, ScrollView, StyleSheet, useWindowDimensions, View } from "react-native";
 import { useFocusEffect } from "@react-navigation/native";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 import { router } from "expo-router";
 import { Text } from "react-native-paper";
+import Svg, { Circle } from "react-native-svg";
+import { BlurOverlayModal, ComingSoonModal } from "@/components/BlurOverlayModal";
 import { ProfileAvatar } from "@/components/ProfileAvatar";
-import { avatarSources, resolveAvatarSource } from "@/constants/avatarAssets";
+import { resolveAvatarSource } from "@/constants/avatarAssets";
+import { offlineBetaPreview } from "@/constants/betaPreview";
 import { ScreenContainer } from "@/components/ScreenContainer";
 import { LoadingState } from "@/components/StateViews";
-import { colors, fonts, radii, spacing, typography } from "@/constants/theme";
-import { VectorBellMark, VectorCoinStackMark, VectorDealMark, VectorSeatMark, VectorStudyMark } from "@/components/VectorMotifs";
+import { colors } from "@/constants/theme";
+import { useEventPoints } from "@/contexts/EventPointsContext";
 import { getCurrentProfile } from "@/lib/auth";
-import { getMonthlyLeaderboard } from "@/lib/leaderboard";
+import { getMemberContactCard, getMonthlyLeaderboard } from "@/lib/leaderboard";
 import { LeaderboardEntry, Profile } from "@/lib/types";
 
-type PointMode = "CP" | "XP";
-type PointValue = {
-  label: string;
-  marker: string;
-  value: string;
+type GameCard = {
+  id: string;
+  title: string;
+  subtitle: string;
+  accessibilityLabel: string;
+  route?: string;
+  asset?: ImageSourcePropType;
+  gradient: [string, string, ...string[]];
+  disabled?: boolean;
 };
 
-const quickActionGlyphs: Record<string, typeof VectorDealMark> = {
-  create: VectorDealMark,
-  cash: VectorCoinStackMark,
-  sitgo: VectorSeatMark,
-  training: VectorStudyMark
-};
-
-const quickActions: { id: string; label: string; accessibilityLabel: string; route: string; hasGlyph?: boolean; avatars?: number[]; accent?: boolean; disabled?: boolean }[] = [
-  { id: "create", label: "Create", accessibilityLabel: "Create a practice match", route: "/tabs/create-match", hasGlyph: true, accent: true },
-  { id: "wait", label: "Wait and Play", accessibilityLabel: "Join wait and play queue", route: "/tabs/queue", avatars: [0, 1, 2] },
-  { id: "ai", label: "AI Lobby", accessibilityLabel: "Open AI lobby practice", route: "/tabs/play", avatars: [1, 3, 0] },
-  { id: "training", label: "Training", accessibilityLabel: "Training coming soon", route: "/tabs/play", hasGlyph: true, disabled: true }
+const gameCards: GameCard[] = [
+  {
+    id: "offline",
+    title: "Offline Tables",
+    subtitle: "Play against AI opponents",
+    accessibilityLabel: "Open offline tables against AI opponents",
+    route: "/offline-setup",
+    asset: require("../../assets/branding/qu-poker-wordmark.png"),
+    gradient: ["#edf6fc", "#e7f4ef", "#e6f6de"]
+  },
+  {
+    id: "tournaments",
+    title: "Tournaments",
+    subtitle: "Registration & upcoming",
+    accessibilityLabel: "Tournaments coming soon",
+    gradient: ["#d9ddff", "#ead9f1"],
+    disabled: true
+  },
+  {
+    id: "training",
+    title: "Practice Hands",
+    subtitle: "Learn more",
+    accessibilityLabel: "Practice hands coming soon",
+    gradient: ["#d9ddff", "#ead9f1"],
+    disabled: true
+  },
+  {
+    id: "create",
+    title: "Custom Match",
+    subtitle: "Build a private club table",
+    accessibilityLabel: "Custom match coming soon",
+    gradient: ["#f1ddc4", "#d9e5f2"],
+    disabled: true
+  }
 ];
+
+const medalLabels = ["🥇", "🥈", "🥉"];
+const fallbackDailyWins = [18, 14, 11, 8, 6];
+const betaPreviewSlides = [
+  {
+    id: "welcome",
+    eyebrow: "WELCOME TO THE BETA",
+    title: "Thanks for joining us.",
+    body: "A lot is still under development, and your time testing the app helps us shape what comes next.",
+    artwork: require("../../assets/animations/gary-beta.gif")
+  },
+  {
+    id: "events",
+    eyebrow: "THE CLUB EXPERIENCE",
+    title: "Events now. More later.",
+    body: "QU Poker is built around club events and Event points. Those points will support more club experiences and rewards in future updates. Contact us if you would like more information.",
+    artwork: require("../../assets/animations/gary-beta.gif")
+  },
+  {
+    id: "development",
+    eyebrow: "BUILT IN THE OPEN",
+    title: "Still taking shape.",
+    body: "We took inspiration from the popular poker app Offsuit while developing our own frontend and backend. Both will keep evolving over the coming weeks. Please leave feedback in TestFlight whenever you can.",
+    artwork: require("../../assets/animations/gary-beta.gif")
+  },
+  {
+    id: "offline",
+    ...offlineBetaPreview,
+    artwork: require("../../assets/animations/gary-beta.gif")
+  }
+];
+const homeFont = Platform.OS === "ios" ? "System" : "InstrumentSans_400Regular";
+const homeMediumFont = Platform.OS === "ios" ? "System" : "InstrumentSans_500Medium";
+const displayFont = Platform.select({
+  ios: "System",
+  android: "sans-serif-thin",
+  default: "'Segoe UI Light', -apple-system, BlinkMacSystemFont, sans-serif"
+});
 
 function formatNumber(value?: number | null) {
   return new Intl.NumberFormat("en-US").format(value ?? 0);
 }
 
-function getFirstName(profile: Profile | null) {
-  return profile?.full_name?.trim().split(/\s+/)[0] || "Sebastian";
+function getFirstName(fullName: string) {
+  return (fullName.trim().split(/\s+/)[0] || "Member").toLowerCase();
 }
 
-function getHandle(name: string) {
-  return `@${name.toLowerCase().replace(/[^a-z0-9]+/g, "") || "member"}`;
-}
-
-function getRankMovement(index: number) {
-  return [1, -1, 0, 1, -1][index] ?? 0;
+function getProfileNameParts(fullName: string) {
+  const [firstName = "Member", ...lastNames] = fullName.trim().split(/\s+/);
+  return {
+    firstName: firstName.toLowerCase(),
+    lastName: lastNames.join(" ").toUpperCase()
+  };
 }
 
 function getLeaderboardAvatar(player: LeaderboardEntry, index: number, currentUserId?: string) {
   return resolveAvatarSource(player, player.user_id === currentUserId ? 0 : index + 1);
 }
 
+function getDailyWins(player: LeaderboardEntry, index: number) {
+  return player.daily_wins ?? fallbackDailyWins[index] ?? 0;
+}
+
+function isSamJoor(player: LeaderboardEntry) {
+  return player.full_name.trim().toLowerCase() === "sam joor";
+}
+
+function usesCircularProfileScreenshot(player: LeaderboardEntry) {
+  const memberName = player.full_name.trim().toLowerCase();
+  return memberName === "antonio rosado" || memberName === "josh venditto";
+}
+
+function getAvatarImageScale(player: LeaderboardEntry) {
+  if (usesCircularProfileScreenshot(player)) return 1.52;
+  return isSamJoor(player) ? 1.08 : 1;
+}
+
+function getAvatarImageTranslateY(player: LeaderboardEntry, size: number) {
+  return usesCircularProfileScreenshot(player) ? size * 0.16 : 0;
+}
+
+function usesEdgeToEdgeAvatar(player: LeaderboardEntry) {
+  return isSamJoor(player) || usesCircularProfileScreenshot(player);
+}
+
+function OfflineTableArtwork({ source, translateX }: { source: ImageSourcePropType; translateX: Animated.AnimatedInterpolation<number> }) {
+  return (
+    <>
+      <Animated.View pointerEvents="none" style={[styles.offlineLightSweep, { transform: [{ translateX }, { rotate: "18deg" }] }]}>
+        <LinearGradient
+          colors={["rgba(255,255,255,0)", "rgba(255,255,255,0.32)", "rgba(255,255,255,0)"]}
+          locations={[0, 0.5, 1]}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 0 }}
+          style={styles.offlineLightSweepFill}
+        />
+      </Animated.View>
+      <Image accessibilityIgnoresInvertColors resizeMode="contain" source={source} style={styles.offlineTableArtwork} />
+    </>
+  );
+}
+
+function LeaderboardMovementMarker({ movement }: { movement: NonNullable<LeaderboardEntry["movement"]> }) {
+  if (movement === "steady") {
+    return (
+      <View accessibilityLabel="Leaderboard position unchanged" style={styles.movementMarker}>
+        <View style={styles.movementSteadyTrack}>
+          <View style={styles.movementSteadyLine} />
+        </View>
+      </View>
+    );
+  }
+
+  return (
+    <View
+      accessibilityLabel={`Leaderboard position moved ${movement}`}
+      style={[styles.movementMarker, movement === "down" && styles.movementMarkerDown]}
+    >
+      <View style={styles.movementTriangleOutline}>
+        <View style={[styles.movementTriangleFill, movement === "up" ? styles.movementUp : styles.movementDown]} />
+      </View>
+    </View>
+  );
+}
+
+function RankRing({ rank }: { rank: number }) {
+  return (
+    <View style={styles.rankRing}>
+      <Svg height={30} style={styles.rankProgress} viewBox="0 0 30 30" width={30}>
+        <Circle cx={15} cy={15} fill="none" r={13.25} stroke="#1e2028" strokeWidth={1.75} />
+      </Svg>
+      <Text style={styles.rankCount}>{rank}</Text>
+    </View>
+  );
+}
+
+function ClubPointMark({ size = 20 }: { size?: number }) {
+  return (
+    <View style={[styles.clubPointMark, { width: size, height: size }]}>
+      <MaterialCommunityIcons name="hexagon-outline" size={size} color="#4ac7f4" />
+      <MaterialCommunityIcons name="cards-club" size={Math.round(size * 0.44)} color="#4ac7f4" style={styles.clubPointGlyph} />
+    </View>
+  );
+}
+
 export default function DashboardScreen() {
-  const [pointMode, setPointMode] = useState<PointMode>("CP");
+  const { eventPoints } = useEventPoints();
+  const { width: windowWidth, height: windowHeight } = useWindowDimensions();
   const [profile, setProfile] = useState<Profile | null>(null);
   const [leaders, setLeaders] = useState<LeaderboardEntry[]>([]);
+  const [selectedPlayer, setSelectedPlayer] = useState<LeaderboardEntry | null>(null);
+  const [comingSoonVisible, setComingSoonVisible] = useState(false);
+  const [clubPointsVisible, setClubPointsVisible] = useState(false);
+  const [betaPreviewVisible, setBetaPreviewVisible] = useState(false);
+  const [betaSlideIndex, setBetaSlideIndex] = useState(0);
   const [loading, setLoading] = useState(true);
+  const offlineCardMotion = useRef(new Animated.Value(0)).current;
+  const scrollY = useRef(new Animated.Value(0)).current;
+  const profileSheetTranslateY = useRef(new Animated.Value(0)).current;
+  const betaSlidesRef = useRef<ScrollView>(null);
+
+  useEffect(() => {
+    const animation = Animated.loop(
+      Animated.sequence([
+        Animated.timing(offlineCardMotion, {
+          toValue: 1,
+          duration: 5200,
+          easing: Easing.inOut(Easing.sin),
+          useNativeDriver: true
+        }),
+        Animated.timing(offlineCardMotion, {
+          toValue: 0,
+          duration: 5200,
+          easing: Easing.inOut(Easing.sin),
+          useNativeDriver: true
+        })
+      ])
+    );
+    animation.start();
+    return () => animation.stop();
+  }, [offlineCardMotion]);
 
   const load = useCallback(async () => {
-    const activeProfile = await getCurrentProfile();
+    const [activeProfile, leaderRows] = await Promise.all([
+      getCurrentProfile(),
+      getMonthlyLeaderboard()
+    ]);
     setProfile(activeProfile);
-    const leaderRows = await getMonthlyLeaderboard();
     setLeaders(leaderRows);
     setLoading(false);
   }, []);
@@ -73,7 +259,87 @@ export default function DashboardScreen() {
   useFocusEffect(
     useCallback(() => {
       load().catch(() => setLoading(false));
-    }, [load])
+      return () => {
+        setSelectedPlayer(null);
+        setComingSoonVisible(false);
+        setClubPointsVisible(false);
+        setBetaPreviewVisible(false);
+        profileSheetTranslateY.setValue(0);
+      };
+    }, [load, profileSheetTranslateY])
+  );
+
+  const closePlayerSheet = useCallback(() => {
+    Animated.timing(profileSheetTranslateY, {
+      toValue: 460,
+      duration: 210,
+      easing: Easing.out(Easing.cubic),
+      useNativeDriver: true
+    }).start(({ finished }) => {
+      if (finished) {
+        setSelectedPlayer(null);
+        profileSheetTranslateY.setValue(0);
+      }
+    });
+  }, [profileSheetTranslateY]);
+
+  const openPlayerSheet = useCallback((player: LeaderboardEntry) => {
+    setSelectedPlayer(player);
+    void getMemberContactCard(player.user_id)
+      .then((contact) => {
+        if (!contact) return;
+        setSelectedPlayer((current) =>
+          current?.user_id === player.user_id
+            ? { ...current, email: contact.email, avatar_url: contact.avatar_url, avatar_key: contact.avatar_key }
+            : current
+        );
+      })
+      .catch(() => undefined);
+  }, []);
+
+  const selectedPlayerId = selectedPlayer?.user_id;
+  useEffect(() => {
+    if (!selectedPlayerId) return;
+    profileSheetTranslateY.setValue(460);
+    Animated.spring(profileSheetTranslateY, {
+      toValue: 0,
+      damping: 24,
+      stiffness: 250,
+      mass: 0.9,
+      useNativeDriver: true
+    }).start();
+  }, [profileSheetTranslateY, selectedPlayerId]);
+
+  const profileSheetPanResponder = useMemo(
+    () =>
+      PanResponder.create({
+        onMoveShouldSetPanResponder: (_, gesture) =>
+          gesture.dy > 6 && Math.abs(gesture.dy) > Math.abs(gesture.dx),
+        onPanResponderMove: (_, gesture) => {
+          profileSheetTranslateY.setValue(Math.max(0, gesture.dy));
+        },
+        onPanResponderRelease: (_, gesture) => {
+          if (gesture.dy > 110 || gesture.vy > 0.85) {
+            closePlayerSheet();
+            return;
+          }
+          Animated.spring(profileSheetTranslateY, {
+            toValue: 0,
+            damping: 22,
+            stiffness: 280,
+            useNativeDriver: true
+          }).start();
+        },
+        onPanResponderTerminate: () => {
+          Animated.spring(profileSheetTranslateY, {
+            toValue: 0,
+            damping: 22,
+            stiffness: 280,
+            useNativeDriver: true
+          }).start();
+        }
+      }),
+    [closePlayerSheet, profileSheetTranslateY]
   );
 
   if (loading) {
@@ -85,148 +351,205 @@ export default function DashboardScreen() {
   }
 
   const spendablePoints = profile?.spendable_points ?? profile?.total_points ?? 0;
-  const pointValues: Record<PointMode, PointValue> = {
-    CP: { label: "Club Points", marker: "Q", value: formatNumber(spendablePoints) },
-    XP: { label: "Experience", marker: "XP", value: formatNumber(profile?.lifetime_points ?? profile?.total_points ?? 0) }
-  };
-  const activePoints = pointValues[pointMode];
   const leaderboardRows = leaders.slice(0, 5);
+  const dailyRank = leaders.find((player) => player.user_id === profile?.id)?.rank ?? 0;
+  const dashboardWidth = Math.min(windowWidth, 472);
+  const dashboardMinHeight = Math.max(900, windowHeight + 180);
+  const gameCardWidth = Math.min(390, Math.max(280, dashboardWidth - 70));
+  const contentColumnWidth = Math.max(280, dashboardWidth - 40);
+  const betaPanelWidth = Math.min(334, Math.max(280, windowWidth - 44));
+  const offlineSweepTranslateX = offlineCardMotion.interpolate({
+    inputRange: [0, 1],
+    outputRange: [-80, 260]
+  });
+  const primaryBalanceOpacity = scrollY.interpolate({
+    inputRange: [0, 38, 68],
+    outputRange: [1, 0.72, 0],
+    extrapolate: "clamp"
+  });
+  const primaryBalanceTranslateY = scrollY.interpolate({
+    inputRange: [0, 82],
+    outputRange: [0, -18],
+    extrapolate: "clamp"
+  });
+  const compactHeaderOpacity = scrollY.interpolate({
+    inputRange: [56, 88],
+    outputRange: [0, 1],
+    extrapolate: "clamp"
+  });
+  const compactSurfaceOpacity = scrollY.interpolate({
+    inputRange: [44, 52],
+    outputRange: [0, 1],
+    extrapolate: "clamp"
+  });
+  const compactFadeOpacity = scrollY.interpolate({
+    inputRange: [42, 96],
+    outputRange: [0, 1],
+    extrapolate: "clamp"
+  });
+  const compactBalanceTranslateY = scrollY.interpolate({
+    inputRange: [56, 88],
+    outputRange: [-10, 0],
+    extrapolate: "clamp"
+  });
+  const profileSheetBackdropOpacity = profileSheetTranslateY.interpolate({
+    inputRange: [0, 360],
+    outputRange: [1, 0],
+    extrapolate: "clamp"
+  });
+  const selectedPlayerIndex = selectedPlayer
+    ? Math.max(0, leaders.findIndex((player) => player.user_id === selectedPlayer.user_id))
+    : 0;
+  const selectedPlayerName = selectedPlayer ? getProfileNameParts(selectedPlayer.full_name) : null;
+  const selectedPlayerIsSam = selectedPlayer ? isSamJoor(selectedPlayer) : false;
 
   return (
-    <ScreenContainer padded={false}>
-      <LinearGradient colors={["#0a0e15", "#05070a", "#020304"]} locations={[0, 0.52, 1]} start={{ x: 0.08, y: 0 }} end={{ x: 0.9, y: 1 }} style={styles.screen}>
-        <View style={styles.topBar}>
-          <Text style={styles.greeting}>Morning, {getFirstName(profile)}</Text>
-          <View style={styles.topIcons}>
-            <Pressable
-              accessibilityLabel="Open QR check-in"
-              hitSlop={10}
-              onPress={() => router.push("/tabs/events")}
-              style={({ pressed }) => [styles.iconButton, pressed && styles.pressed]}
-            >
-              <MaterialCommunityIcons name="qrcode-scan" size={21} color={colors.text} />
-            </Pressable>
-            <Pressable
-              accessibilityLabel="Open tournament center"
-              hitSlop={10}
-              onPress={() => router.push("/tabs/tournaments")}
-              style={({ pressed }) => [styles.iconButton, styles.notificationButton, pressed && styles.pressed]}
-            >
-              <VectorBellMark size={21} color={colors.text} />
-            </Pressable>
-          </View>
-        </View>
+    <ScreenContainer fill padded={false} reserveTabBarSpace={false} scroll={false}>
+      <View style={styles.dashboardShell}>
+        <Animated.ScrollView
+          contentContainerStyle={styles.dashboardScrollContent}
+          onScroll={Animated.event([{ nativeEvent: { contentOffset: { y: scrollY } } }], { useNativeDriver: true })}
+          scrollEventThrottle={16}
+          showsVerticalScrollIndicator={false}
+          style={styles.dashboardScroll}
+        >
+          <LinearGradient colors={["#000000", "#000000"]} style={[styles.screen, { minHeight: dashboardMinHeight }]}>
+        <View style={styles.topBarSpacer} />
 
-        <View style={styles.balanceBlock}>
-          <Text style={styles.balanceLabel}>Club balance</Text>
-          <View style={styles.balanceRow}>
-            <Text style={styles.balanceMarker}>{activePoints.marker}</Text>
-            <Text style={styles.balance}>{activePoints.value}</Text>
-          </View>
-          <View style={styles.pointsToggle}>
-            {(["CP", "XP"] as PointMode[]).map((mode) => {
-              const selected = pointMode === mode;
-              return (
-                <Pressable
-                  accessibilityLabel={`Show ${pointValues[mode].label}`}
-                  key={mode}
-                  onPress={() => setPointMode(mode)}
-                  style={({ pressed }) => [styles.toggleOption, selected && styles.toggleOptionActive, pressed && styles.pressed]}
-                >
-                  <Text style={[styles.toggleText, selected && styles.toggleTextActive]}>{pointValues[mode].label}</Text>
-                </Pressable>
-              );
-            })}
-          </View>
-        </View>
-
-        <LinearGradient colors={["rgba(12,53,95,0.24)", "rgba(255,255,255,0.045)"]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.tournamentCard}>
-          <View style={styles.tournamentIcon}>
-            <MaterialCommunityIcons name="trophy-outline" size={23} color={colors.lime} />
-          </View>
-          <View style={styles.tournamentCopy}>
-            <Text numberOfLines={1} style={styles.tournamentTitle}>
-              Tournament sign-up
-            </Text>
-            <Text numberOfLines={1} style={styles.tournamentEmpty}>
-              No tournaments right now
-            </Text>
-            <View style={styles.progressTrack}>
-              <View style={styles.progressFill} />
+        <Animated.View
+          style={[
+            styles.balanceBlock,
+            { width: contentColumnWidth, opacity: primaryBalanceOpacity, transform: [{ translateY: primaryBalanceTranslateY }] }
+          ]}
+        >
+          <View style={styles.balanceComposition}>
+            <View style={styles.balanceRow}>
+              <Text style={styles.balance}>{formatNumber(spendablePoints)}</Text>
             </View>
           </View>
-          <Pressable accessibilityLabel="Open tournaments" hitSlop={8} onPress={() => router.push("/tabs/tournaments")} style={({ pressed }) => [styles.tournamentAction, pressed && styles.pressed]}>
-            <Text style={styles.tournamentActionText}>Notify</Text>
+          <Pressable
+            accessibilityLabel="About club points"
+            hitSlop={10}
+            onPress={() => setClubPointsVisible(true)}
+            style={({ pressed }) => [styles.balanceHelp, pressed && styles.pressed]}
+          >
+            <MaterialCommunityIcons name="help-circle-outline" size={14} color="rgba(247,248,250,0.48)" />
+            <Text style={styles.balanceHelpText}>Club points</Text>
           </Pressable>
-        </LinearGradient>
+        </Animated.View>
 
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.quickActionScroll} contentContainerStyle={styles.quickActionRail}>
-          {quickActions.map((action) => (
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          decelerationRate="fast"
+          snapToInterval={gameCardWidth + 18}
+          style={styles.gameScroll}
+          contentContainerStyle={styles.gameRail}
+        >
+          {gameCards.map((card) => (
             <Pressable
-              accessibilityLabel={action.accessibilityLabel}
-              disabled={action.disabled}
-              key={action.id}
-              onPress={() => router.push(action.route as never)}
-              style={({ pressed }) => [styles.actionItem, action.disabled && styles.actionItemDisabled, pressed && styles.pressed]}
+              accessibilityLabel={card.accessibilityLabel}
+              accessibilityHint={card.id === "offline" ? "Starts an offline poker table" : undefined}
+              disabled={card.disabled}
+              key={card.id}
+              onPress={() => card.route && router.push(card.route as never)}
+              style={({ pressed }) => [styles.gameCard, { width: gameCardWidth }, card.disabled && styles.gameCardDisabled, pressed && styles.gameCardPressed]}
             >
-              <View style={[styles.actionBubble, action.accent && styles.actionBubbleAccent]}>
-                {action.hasGlyph ? (
-                  (() => {
-                    const Glyph = quickActionGlyphs[action.id];
-                    return <Glyph size={30} color={action.accent ? colors.gold : colors.text} />;
-                  })()
-                ) : (
-                  <View style={styles.avatarCluster}>
-                    {action.avatars?.map((avatarIndex, index) => (
-                      <View key={`${action.label}-${avatarIndex}-${index}`} style={[styles.clusterAvatar, index === 0 && styles.clusterLeft, index === 1 && styles.clusterCenter, index === 2 && styles.clusterRight]}>
-                        <ProfileAvatar size={36} source={avatarSources[avatarIndex]} />
-                      </View>
-                    ))}
+              <LinearGradient
+                colors={card.disabled ? ["rgba(255,255,255,0.09)", "rgba(255,255,255,0.045)"] : card.gradient}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 1 }}
+                locations={card.id === "offline" ? [0, 0.36, 1] : undefined}
+                style={styles.gameCardGradient}
+              >
+                {card.id === "offline" ? (
+                  <>
+                    {card.asset ? <OfflineTableArtwork source={card.asset} translateX={offlineSweepTranslateX} /> : null}
+                    <View pointerEvents="none" style={styles.playNowCue}>
+                      <MaterialCommunityIcons name="arrow-top-right" size={14} color="rgba(11,13,16,0.62)" />
+                      <Text style={styles.playNowText}>PLAY NOW</Text>
+                    </View>
+                  </>
+                ) : !card.disabled && card.asset ? (
+                  <Image
+                    resizeMode="contain"
+                    source={card.asset}
+                    style={styles.gameAsset}
+                  />
+                ) : null}
+                {card.disabled ? (
+                  <View style={styles.lockState}>
+                    <MaterialCommunityIcons name="lock-outline" size={15} color="rgba(247,248,250,0.58)" />
+                    <Text style={styles.comingSoon}>COMING SOON</Text>
                   </View>
-                )}
-              </View>
-              <Text numberOfLines={1} style={styles.actionLabel}>
-                {action.label}
-              </Text>
+                ) : null}
+                <View style={styles.gameCopy}>
+                  <Text numberOfLines={1} style={[styles.gameTitle, card.disabled && styles.gameTitleLocked]}>
+                    {card.title}
+                  </Text>
+                  <Text numberOfLines={2} style={[styles.gameSubtitle, card.disabled && styles.gameSubtitleLocked]}>
+                    {card.subtitle}
+                  </Text>
+                </View>
+              </LinearGradient>
             </Pressable>
           ))}
         </ScrollView>
 
-        <View style={styles.leaderboardHeader}>
-          <Text style={styles.leaderboardTitle}>Weekly leaderboard</Text>
-          <Pressable accessibilityLabel="View full weekly leaderboard" hitSlop={10} onPress={() => router.push("/tabs/leaderboard")} style={({ pressed }) => [styles.viewAllButton, pressed && styles.pressed]}>
-            <Text style={styles.viewAllText}>View all</Text>
+        <View style={[styles.leaderboardHeader, { width: contentColumnWidth }]}>
+          <Text style={styles.leaderboardTitle}>Most hands won today</Text>
+          <Pressable
+            accessibilityLabel="About beta preview features"
+            hitSlop={10}
+            onPress={() => {
+              setBetaSlideIndex(0);
+              setBetaPreviewVisible(true);
+              requestAnimationFrame(() => betaSlidesRef.current?.scrollTo({ animated: false, x: 0 }));
+            }}
+            style={({ pressed }) => [styles.leaderboardShortcut, pressed && styles.pressed]}
+          >
+            <MaterialCommunityIcons name="information-outline" size={14} color="rgba(247,248,250,0.48)" />
+            <Text style={styles.leaderboardShortcutText}>Beta preview</Text>
           </Pressable>
         </View>
 
-        <View style={styles.leaderboardList}>
+        <View style={[styles.leaderboardList, { width: gameCardWidth }]}>
           {leaderboardRows.length > 0 ? (
             leaderboardRows.map((player, index) => {
-              const movement = getRankMovement(index);
+              const rank = player.rank || index + 1;
+              const movement = player.movement;
+              const dailyWins = getDailyWins(player, index);
               return (
                 <Pressable
-                  accessibilityLabel={`${player.full_name}, ${formatNumber(player.total_points)} experience points`}
+                  accessibilityLabel={`${player.full_name}, daily rank ${rank}, ${dailyWins} hands won`}
                   key={player.user_id}
-                  onPress={() => router.push(`/members/${player.user_id}`)}
-                  style={({ pressed }) => [styles.leaderRow, player.user_id === profile?.id && styles.leaderRowActive, pressed && styles.pressed]}
+                  onPress={() => openPlayerSheet(player)}
+                  style={({ pressed }) => [styles.leaderRow, pressed && styles.leaderRowPressed]}
                 >
-                  <View style={styles.leaderLeft}>
-                    <Text style={styles.leaderRank}>{player.rank || index + 1}</Text>
-                    <ProfileAvatar size={46} source={getLeaderboardAvatar(player, index, profile?.id)} />
-                    <View style={styles.leaderCopy}>
-                      <Text numberOfLines={1} style={styles.leaderName}>
-                        {player.full_name}
-                      </Text>
-                      <Text numberOfLines={1} style={styles.leaderHandle}>
-                        {getHandle(player.full_name)}
-                      </Text>
-                    </View>
+                  <View style={styles.rankSlot}>
+                    {rank <= 3 ? (
+                      <Text style={styles.medal}>{medalLabels[rank - 1]}</Text>
+                    ) : (
+                      <Text style={styles.leaderRank}>{rank}</Text>
+                    )}
                   </View>
-                  <View style={styles.leaderScoreWrap}>
-                    {movement !== 0 ? (
-                      <MaterialCommunityIcons name={movement > 0 ? "arrow-up" : "arrow-down"} size={14} color={movement > 0 ? colors.felt : colors.red} />
-                    ) : null}
-                    <Text style={styles.leaderXp}>{formatNumber(player.total_points)} XP</Text>
+                  <View style={styles.avatarStatus}>
+                  <ProfileAvatar
+                    edgeToEdge={usesEdgeToEdgeAvatar(player)}
+                    imageScale={getAvatarImageScale(player)}
+                    imageTranslateY={getAvatarImageTranslateY(player, 36)}
+                    size={36}
+                    source={getLeaderboardAvatar(player, index, profile?.id)}
+                  />
+                  </View>
+                  <View style={styles.leaderCopy}>
+                    <Text numberOfLines={1} style={styles.leaderName}>
+                      {getFirstName(player.full_name)}
+                    </Text>
+                    <Text style={styles.leaderScore}>{dailyWins} 🔥</Text>
+                  </View>
+                  <View style={styles.movementEndSlot}>
+                    {movement ? <LeaderboardMovementMarker movement={movement} /> : null}
                   </View>
                 </Pressable>
               );
@@ -237,378 +560,1026 @@ export default function DashboardScreen() {
             </View>
           )}
         </View>
-        <View style={styles.bottomSpacer} />
-      </LinearGradient>
+
+        <Pressable
+          accessibilityLabel="See weekly leaderboard"
+          accessibilityHint="Opens a coming soon preview"
+          onPress={() => setComingSoonVisible(true)}
+          style={({ pressed }) => [styles.fullLeaderboardButton, { width: contentColumnWidth }, pressed && styles.fullLeaderboardButtonPressed]}
+        >
+          <Text style={styles.fullLeaderboardText}>See weekly leaderboard</Text>
+        </Pressable>
+          </LinearGradient>
+        </Animated.ScrollView>
+
+        <View
+          pointerEvents="box-none"
+          style={styles.dashboardTopChrome}
+        >
+          <Animated.View
+            pointerEvents="none"
+            style={[styles.dashboardTopChromeSurface, { opacity: compactSurfaceOpacity }]}
+          />
+          <Animated.View pointerEvents="none" style={[styles.dashboardTopChromeFade, { opacity: compactFadeOpacity }]}>
+            <LinearGradient
+              colors={["rgba(0,0,0,0.94)", "rgba(0,0,0,0.48)", "rgba(0,0,0,0)"]}
+              locations={[0, 0.46, 1]}
+              style={StyleSheet.absoluteFillObject}
+            />
+          </Animated.View>
+          <View pointerEvents="box-none" style={styles.dashboardTopChromeContent}>
+            <Pressable
+              accessibilityLabel={`${eventPoints} club points. Learn more`}
+              accessibilityRole="button"
+              hitSlop={8}
+              onPress={() => setClubPointsVisible(true)}
+              style={({ pressed }) => [styles.eventPointsCounter, pressed && styles.pressed]}
+            >
+              <ClubPointMark />
+              <Text style={styles.eventPointsCount}>{formatNumber(eventPoints)}</Text>
+            </Pressable>
+            <Animated.View
+              style={[
+                styles.compactBalance,
+                { opacity: compactHeaderOpacity, transform: [{ translateY: compactBalanceTranslateY }] }
+              ]}
+            >
+              <Text style={styles.compactBalanceText}>{formatNumber(spendablePoints)}</Text>
+            </Animated.View>
+            <Pressable
+              accessibilityLabel="Rank preview coming soon"
+              accessibilityRole="button"
+              hitSlop={8}
+              onPress={() => setComingSoonVisible(true)}
+              style={({ pressed }) => [styles.rankCounter, pressed && styles.rankCounterPressed]}
+            >
+              <RankRing rank={dailyRank} />
+            </Pressable>
+          </View>
+        </View>
+      </View>
+
+      <ComingSoonModal onClose={() => setComingSoonVisible(false)} visible={comingSoonVisible} />
+
+      <BlurOverlayModal
+        accessibilityLabel="Close club points information"
+        onClose={() => setClubPointsVisible(false)}
+        visible={clubPointsVisible}
+      >
+        <View style={styles.clubPointsPanel}>
+          <Pressable
+            accessibilityLabel="Close"
+            accessibilityRole="button"
+            hitSlop={10}
+            onPress={() => setClubPointsVisible(false)}
+            style={({ pressed }) => [styles.infoModalClose, pressed && styles.infoModalClosePressed]}
+          >
+            <MaterialCommunityIcons color="rgba(247,248,250,0.76)" name="close" size={18} />
+          </Pressable>
+          <View style={styles.clubPointsMarkWrap}>
+            <ClubPointMark size={54} />
+          </View>
+          <Text style={styles.clubPointsTitle}>Club points</Text>
+          <Text style={styles.clubPointsBody}>
+            Check in at club events to collect them. The more events you attend, the more your total grows. Club points are intended for future event registration and other club experiences.
+          </Text>
+          <View style={styles.clubPointsDivider} />
+          <Text style={styles.clubPointsEyebrow}>FREE PREVIEW BALANCE</Text>
+          <Text style={styles.clubPointsPreviewValue}>2,000</Text>
+          <Text style={styles.clubPointsPreviewBody}>
+            The 2,000 shown today is a placeholder for free in-app currency. It will be free to collect through app activity, with more ways to earn and use it added as the beta develops.
+          </Text>
+        </View>
+      </BlurOverlayModal>
+
+      <BlurOverlayModal
+        accessibilityLabel="Close beta preview"
+        onClose={() => setBetaPreviewVisible(false)}
+        visible={betaPreviewVisible}
+      >
+          <View style={[styles.betaPreviewPanel, { width: betaPanelWidth }]}>
+            <Pressable
+              accessibilityLabel="Close"
+              accessibilityRole="button"
+              hitSlop={10}
+              onPress={() => setBetaPreviewVisible(false)}
+              style={({ pressed }) => [styles.betaPreviewClose, pressed && styles.betaPreviewClosePressed]}
+            >
+              <MaterialCommunityIcons color="rgba(247,248,250,0.76)" name="close" size={18} />
+            </Pressable>
+            <ScrollView
+              decelerationRate="fast"
+              horizontal
+              onScroll={(event) => {
+                const nextIndex = Math.round(event.nativeEvent.contentOffset.x / betaPanelWidth);
+                const boundedIndex = Math.max(0, Math.min(betaPreviewSlides.length - 1, nextIndex));
+                setBetaSlideIndex((currentIndex) => currentIndex === boundedIndex ? currentIndex : boundedIndex);
+              }}
+              pagingEnabled
+              ref={betaSlidesRef}
+              scrollEventThrottle={16}
+              showsHorizontalScrollIndicator={false}
+              style={styles.betaPreviewSlides}
+            >
+              {betaPreviewSlides.map((slide) => (
+                <View key={slide.id} style={[styles.betaPreviewPage, { width: betaPanelWidth }]}>
+                  <View style={styles.betaPreviewVisual}>
+                    <Image
+                      accessibilityIgnoresInvertColors
+                      resizeMode="contain"
+                      source={slide.artwork}
+                      style={styles.betaPreviewGif}
+                    />
+                  </View>
+                  <View style={styles.betaPreviewSlide}>
+                    <Text style={styles.betaPreviewEyebrow}>{slide.eyebrow}</Text>
+                    <Text style={styles.betaPreviewTitle}>{slide.title}</Text>
+                    <Text style={styles.betaPreviewBody}>{slide.body}</Text>
+                  </View>
+                </View>
+              ))}
+            </ScrollView>
+            <View accessibilityLabel={`Page ${betaSlideIndex + 1} of ${betaPreviewSlides.length}`} style={styles.betaPreviewDots}>
+              {betaPreviewSlides.map((slide, index) => (
+                <Pressable
+                  accessibilityLabel={`Show page ${index + 1}`}
+                  accessibilityRole="button"
+                  key={slide.eyebrow}
+                  onPress={() => {
+                    betaSlidesRef.current?.scrollTo({ animated: true, x: index * betaPanelWidth });
+                    setBetaSlideIndex(index);
+                  }}
+                  style={styles.betaPreviewDotTarget}
+                >
+                  <View style={[styles.betaPreviewDot, index === betaSlideIndex && styles.betaPreviewDotActive]} />
+                </Pressable>
+              ))}
+            </View>
+          </View>
+      </BlurOverlayModal>
+
+      <Modal
+        animationType="none"
+        onRequestClose={closePlayerSheet}
+        statusBarTranslucent
+        transparent
+        visible={Boolean(selectedPlayer)}
+      >
+        <View style={styles.profileSheetRoot}>
+          <Animated.View style={[styles.profileSheetBackdrop, { opacity: profileSheetBackdropOpacity }]}>
+            <Pressable
+              accessibilityLabel="Close member profile"
+              onPress={closePlayerSheet}
+              style={StyleSheet.absoluteFillObject}
+            />
+          </Animated.View>
+          <Animated.View
+            accessibilityViewIsModal
+            style={[styles.profileSheet, { transform: [{ translateY: profileSheetTranslateY }] }]}
+            {...profileSheetPanResponder.panHandlers}
+          >
+            <View style={styles.profileSheetHandle} />
+            {selectedPlayer ? (
+              <>
+                <View style={[styles.profileSheetAvatarRing, selectedPlayerIsSam && styles.profileSheetAvatarRingFlush]}>
+                  <ProfileAvatar
+                    edgeToEdge={usesEdgeToEdgeAvatar(selectedPlayer)}
+                    imageScale={getAvatarImageScale(selectedPlayer)}
+                    imageTranslateY={getAvatarImageTranslateY(selectedPlayer, 92)}
+                    size={92}
+                    source={getLeaderboardAvatar(selectedPlayer, selectedPlayerIndex, profile?.id)}
+                  />
+                </View>
+                <Text numberOfLines={1} style={styles.profileSheetName}>
+                  {selectedPlayerName?.firstName}
+                </Text>
+                {selectedPlayerName?.lastName ? (
+                  <Text numberOfLines={1} style={styles.profileSheetSurname}>
+                    {selectedPlayerName.lastName}
+                  </Text>
+                ) : null}
+                <Text numberOfLines={1} style={styles.profileSheetEmail}>
+                  concept@qu.edu
+                </Text>
+                <View style={styles.profileSheetDivider} />
+                <View style={styles.profileSheetMetrics}>
+                  <View style={styles.profileSheetMetric}>
+                    <Text style={styles.profileSheetMetricLabel}>DAILY RANK</Text>
+                    <Text style={styles.profileSheetMetricValue}>#{selectedPlayer.rank}</Text>
+                  </View>
+                  <View style={styles.profileSheetMetricDivider} />
+                  <View style={styles.profileSheetMetric}>
+                    <Text style={styles.profileSheetMetricLabel}>HANDS WON</Text>
+                    <Text style={styles.profileSheetMetricValue}>{getDailyWins(selectedPlayer, selectedPlayerIndex)} 🔥</Text>
+                  </View>
+                </View>
+                <Text style={styles.profileSheetDismissHint}>Swipe down to close</Text>
+              </>
+            ) : null}
+          </Animated.View>
+        </View>
+      </Modal>
     </ScreenContainer>
   );
 }
 
 const styles = StyleSheet.create({
+  dashboardShell: {
+    flex: 1,
+    width: "100%",
+    position: "relative",
+    backgroundColor: "#000000"
+  },
+  dashboardScroll: {
+    flex: 1,
+    width: "100%",
+    position: "relative",
+    zIndex: 0
+  },
+  dashboardScrollContent: {
+    flexGrow: 1,
+    alignItems: "center"
+  },
   screen: {
     width: "100%",
-    maxWidth: 430,
-    minHeight: 780,
+    maxWidth: 472,
+    minHeight: 840,
     alignSelf: "center",
-    paddingHorizontal: 28,
-    paddingTop: 36,
-    paddingBottom: 94,
+    paddingHorizontal: 20,
+    paddingTop: 2,
+    paddingBottom: 20,
     overflow: "hidden"
   },
-  topBar: {
+  topBarSpacer: {
+    minHeight: 81
+  },
+  clubPointMark: {
+    position: "relative",
+    alignItems: "center",
+    justifyContent: "center"
+  },
+  clubPointGlyph: {
+    position: "absolute"
+  },
+  eventPointsCounter: {
+    minWidth: 44,
+    minHeight: 44,
     flexDirection: "row",
     alignItems: "center",
-    justifyContent: "space-between"
+    gap: 6
   },
-  greeting: {
-    color: colors.text,
-    fontFamily: fonts.bold,
-    fontSize: typography.body,
-    lineHeight: 20,
-    fontWeight: "700"
+  eventPointsCount: {
+    color: "#4ac7f4",
+    fontFamily: homeFont,
+    fontSize: 14,
+    lineHeight: 18,
+    fontWeight: "400",
+    letterSpacing: 0
   },
-  topIcons: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: spacing.sm
-  },
-  iconButton: {
+  rankCounter: {
     width: 44,
     height: 44,
-    borderRadius: radii.pill,
     alignItems: "center",
-    justifyContent: "center",
-    backgroundColor: "rgba(255,246,240,0.055)",
-    borderColor: colors.border,
-    borderWidth: 1
+    justifyContent: "center"
   },
-  notificationButton: {
-    position: "relative"
+  rankCounterPressed: {
+    opacity: 0.58
+  },
+  rankRing: {
+    width: 30,
+    height: 30,
+    borderRadius: 15,
+    alignItems: "center",
+    justifyContent: "center"
+  },
+  rankProgress: {
+    position: "absolute",
+    top: 0,
+    left: 0
+  },
+  rankCount: {
+    color: colors.text,
+    fontFamily: homeFont,
+    fontSize: 10,
+    lineHeight: 13,
+    fontWeight: "400",
+    letterSpacing: 0
   },
   balanceBlock: {
-    alignItems: "center",
-    marginTop: 42
+    alignItems: "flex-start",
+    marginTop: 4,
+    position: "relative"
   },
-  balanceLabel: {
-    color: colors.muted,
-    fontFamily: fonts.semibold,
-    fontSize: typography.meta,
-    lineHeight: 16,
-    fontWeight: "700"
+  balanceComposition: {
+    position: "relative"
   },
   balanceRow: {
+    minHeight: 84,
     flexDirection: "row",
     alignItems: "baseline",
-    justifyContent: "center",
-    gap: spacing.sm,
-    marginTop: 2
-  },
-  balanceMarker: {
-    color: colors.text,
-    fontFamily: fonts.headingSemibold,
-    fontSize: 27,
-    lineHeight: 36,
-    fontWeight: "800",
-    letterSpacing: 0
+    marginTop: 1
   },
   balance: {
     color: colors.text,
-    fontFamily: fonts.heading,
-    fontSize: typography.balance,
-    lineHeight: 76,
-    fontWeight: "300",
+    fontFamily: displayFont,
+    fontSize: 74,
+    lineHeight: 84,
+    fontWeight: "200",
     letterSpacing: 0
   },
-  pointsToggle: {
+  balanceHelp: {
+    position: "absolute",
+    right: 0,
+    top: 28,
+    minHeight: 30,
     flexDirection: "row",
     alignItems: "center",
-    gap: spacing.xs,
-    marginTop: spacing.md,
-    padding: 5,
-    borderRadius: radii.pill,
-    backgroundColor: "rgba(247,248,250,0.06)",
-    borderColor: colors.borderSoft,
-    borderWidth: 1
+    gap: 5
   },
-  toggleOption: {
-    minWidth: 120,
-    minHeight: 36,
-    borderRadius: radii.pill,
-    alignItems: "center",
-    justifyContent: "center"
-  },
-  toggleOptionActive: {
-    backgroundColor: "rgba(251,246,240,0.96)"
-  },
-  toggleText: {
-    color: colors.muted,
-    fontSize: 12,
-    lineHeight: 16,
-    fontWeight: "900"
-  },
-  toggleTextActive: {
-    color: colors.ink
-  },
-  tournamentCard: {
-    marginTop: spacing.xl,
-    minHeight: 88,
-    borderRadius: radii.lg,
-    flexDirection: "row",
-    alignItems: "center",
-    gap: spacing.sm,
-    padding: spacing.md,
-    borderColor: colors.border,
-    borderWidth: 1,
-    shadowColor: "#000000",
-    shadowOpacity: 0.2,
-    shadowRadius: 24,
-    shadowOffset: { width: 0, height: 16 }
-  },
-  tournamentIcon: {
-    width: 46,
-    height: 46,
-    borderRadius: 23,
-    alignItems: "center",
-    justifyContent: "center",
-    backgroundColor: "rgba(214,165,54,0.09)",
-    borderColor: "rgba(214,165,54,0.2)",
-    borderWidth: 1
-  },
-  tournamentCopy: {
-    flex: 1,
-    minWidth: 0
-  },
-  tournamentTitle: {
-    color: colors.text,
-    fontFamily: fonts.extraBold,
-    fontSize: 15,
-    lineHeight: 19,
-    fontWeight: "900"
-  },
-  tournamentEmpty: {
-    color: colors.muted,
-    marginTop: 4,
+  balanceHelpText: {
+    color: "rgba(247,248,250,0.5)",
+    fontFamily: homeFont,
     fontSize: 11,
-    lineHeight: 14,
-    fontWeight: "700"
+    lineHeight: 15,
+    fontWeight: "400",
+    letterSpacing: 0
   },
-  progressTrack: {
-    height: 4,
-    marginTop: spacing.sm,
-    borderRadius: radii.pill,
-    backgroundColor: "rgba(255,255,255,0.07)",
-    overflow: "hidden"
+  gameScroll: {
+    height: 184,
+    maxHeight: 184,
+    flexGrow: 0,
+    flexShrink: 0,
+    marginTop: 48,
+    marginHorizontal: -20,
+    overflow: "visible"
   },
-  progressFill: {
-    width: "0%",
-    height: "100%",
-    borderRadius: radii.pill,
-    backgroundColor: colors.gold,
-    opacity: 0.72
+  gameRail: {
+    paddingHorizontal: 20,
+    paddingRight: 56,
+    gap: 18
   },
-  tournamentAction: {
-    minWidth: 62,
-    minHeight: 36,
-    paddingHorizontal: spacing.md,
-    borderRadius: radii.pill,
-    alignItems: "center",
-    justifyContent: "center",
-    backgroundColor: "rgba(251,246,240,0.94)"
+  gameCard: {
+    height: 184,
+    borderRadius: 30,
+    overflow: "hidden",
+    backgroundColor: "#dceae8"
   },
-  tournamentActionText: {
-    color: colors.ink,
-    fontSize: 12,
-    lineHeight: 16,
-    fontWeight: "900"
+  gameCardDisabled: {
+    backgroundColor: "transparent"
   },
-  quickActionScroll: {
-    marginTop: spacing.xl,
-    marginHorizontal: -28
+  gameCardPressed: {
+    opacity: 0.9,
+    transform: [{ scale: 0.985 }]
   },
-  quickActionRail: {
-    paddingHorizontal: 28,
-    flexDirection: "row",
-    gap: spacing.lg
+  gameCardGradient: {
+    flex: 1,
+    paddingHorizontal: 24,
+    paddingVertical: 22
   },
-  actionItem: {
-    width: 92,
-    minHeight: 118,
-    alignItems: "center",
-    justifyContent: "center"
+  gameAsset: {
+    width: 82,
+    height: 82,
+    marginLeft: -7,
+    marginTop: -8
   },
-  actionItemDisabled: {
-    opacity: 0.5
-  },
-  actionBubble: {
+  offlineTableArtwork: {
+    position: "absolute",
+    top: 22,
+    left: 24,
     width: 78,
-    height: 78,
-    borderRadius: 39,
+    height: 37
+  },
+  offlineLightSweep: {
+    position: "absolute",
+    top: -54,
+    left: -72,
+    width: 92,
+    height: 280,
+    opacity: 0.42
+  },
+  offlineLightSweepFill: {
+    flex: 1
+  },
+  playNowCue: {
+    position: "absolute",
+    top: 22,
+    right: 23,
+    flexDirection: "row",
     alignItems: "center",
-    justifyContent: "center",
-    backgroundColor: "rgba(247,248,250,0.065)",
-    borderColor: colors.border,
-    borderWidth: 1,
-    shadowColor: "#000000",
-    shadowOpacity: 0.18,
-    shadowRadius: 16,
-    shadowOffset: { width: 0, height: 10 }
+    gap: 5
   },
-  actionBubbleAccent: {
-    backgroundColor: "rgba(12,53,95,0.62)",
-    borderColor: "rgba(214,165,54,0.42)",
-    shadowColor: "#000000",
-    shadowOpacity: 0.24,
-    shadowRadius: 18,
-    shadowOffset: { width: 0, height: 10 }
+  playNowText: {
+    color: "rgba(11,13,16,0.62)",
+    fontFamily: homeMediumFont,
+    fontSize: 9,
+    lineHeight: 12,
+    fontWeight: "600",
+    letterSpacing: 0
   },
-  avatarCluster: {
-    width: 67,
-    height: 54
+  lockState: {
+    position: "absolute",
+    top: 22,
+    right: 23,
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6
   },
-  clusterAvatar: {
-    position: "absolute"
+  comingSoon: {
+    color: "rgba(247,248,250,0.52)",
+    fontFamily: homeMediumFont,
+    fontSize: 9,
+    lineHeight: 12,
+    fontWeight: "600",
+    letterSpacing: 0
   },
-  clusterLeft: {
-    bottom: 0,
-    left: 0
+  gameCopy: {
+    marginTop: "auto",
+    paddingRight: 0
   },
-  clusterCenter: {
-    top: 0,
-    left: 16
+  gameTitle: {
+    color: "#0b0d10",
+    fontFamily: homeFont,
+    fontSize: 24,
+    lineHeight: 29,
+    fontWeight: "400",
+    letterSpacing: 0
   },
-  clusterRight: {
-    bottom: 0,
-    right: 0
+  gameTitleLocked: {
+    color: "rgba(247,248,250,0.68)"
   },
-  actionLabel: {
-    color: colors.text,
-    fontFamily: fonts.bold,
-    marginTop: spacing.sm,
-    fontSize: 12,
-    lineHeight: 16,
-    fontWeight: "800",
-    textAlign: "center"
+  gameSubtitle: {
+    color: "rgba(11,13,16,0.68)",
+    fontFamily: homeFont,
+    marginTop: 5,
+    fontSize: 12.5,
+    lineHeight: 17,
+    fontWeight: "400",
+    letterSpacing: 0
+  },
+  gameSubtitleLocked: {
+    color: "rgba(247,248,250,0.4)"
   },
   leaderboardHeader: {
-    marginTop: spacing.xl,
+    marginTop: 48,
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between"
   },
   leaderboardTitle: {
+    flexShrink: 1,
     color: colors.text,
-    fontFamily: fonts.headingSemibold,
-    fontSize: typography.sectionTitle,
-    lineHeight: 23,
-    fontWeight: "800"
+    fontFamily: homeFont,
+    fontSize: 17,
+    lineHeight: 22,
+    fontWeight: "400",
+    letterSpacing: 0
   },
-  viewAllButton: {
-    minHeight: 32,
-    paddingHorizontal: spacing.md,
-    borderRadius: radii.pill,
+  leaderboardShortcut: {
+    minHeight: 30,
+    marginLeft: "auto",
+    flexDirection: "row",
     alignItems: "center",
-    justifyContent: "center",
-    backgroundColor: "rgba(255,255,255,0.06)",
-    borderColor: colors.border,
-    borderWidth: 1
+    gap: 5,
+    paddingLeft: 10
   },
-  viewAllText: {
-    color: colors.text,
-    fontSize: 12,
-    lineHeight: 16,
-    fontWeight: "800"
+  leaderboardShortcutText: {
+    color: "rgba(247,248,250,0.54)",
+    fontFamily: homeFont,
+    fontSize: 11,
+    lineHeight: 15,
+    fontWeight: "400",
+    letterSpacing: 0
   },
   leaderboardList: {
-    marginTop: spacing.md,
-    gap: spacing.sm
+    marginTop: 8,
+    gap: 0
   },
   leaderRow: {
-    minHeight: 58,
-    paddingHorizontal: spacing.xs,
-    paddingVertical: spacing.xs,
-    borderRadius: radii.md,
+    minHeight: 68,
     flexDirection: "row",
     alignItems: "center",
-    justifyContent: "space-between",
-    backgroundColor: "transparent"
+    paddingVertical: 8
   },
-  leaderRowActive: {
-    backgroundColor: "rgba(255,255,255,0.045)",
-    borderColor: "rgba(255,255,255,0.05)",
-    borderWidth: 1
+  leaderRowPressed: {
+    opacity: 0.7
   },
-  leaderLeft: {
-    flex: 1,
-    minWidth: 0,
-    flexDirection: "row",
+  rankSlot: {
+    width: 56,
     alignItems: "center",
-    gap: spacing.sm
+    justifyContent: "center"
   },
   leaderRank: {
-    width: 24,
-    color: "rgba(247,248,250,0.68)",
-    fontSize: 14,
-    lineHeight: 18,
-    fontWeight: "800",
-    textAlign: "center"
+    color: "rgba(247,248,250,0.75)",
+    fontFamily: homeFont,
+    fontSize: 17,
+    lineHeight: 22,
+    fontWeight: "400",
+    letterSpacing: 0
   },
   leaderCopy: {
     flex: 1,
-    minWidth: 0
+    minWidth: 0,
+    marginLeft: 24
+  },
+  avatarStatus: {
+    width: 36,
+    height: 36
+  },
+  movementMarker: {
+    width: 16,
+    height: 14,
+    alignItems: "center",
+    justifyContent: "center"
+  },
+  movementEndSlot: {
+    width: 22,
+    alignItems: "flex-end",
+    justifyContent: "center"
+  },
+  movementMarkerDown: {
+    transform: [{ rotate: "180deg" }]
+  },
+  movementTriangleOutline: {
+    width: 0,
+    height: 0,
+    borderLeftWidth: 7,
+    borderRightWidth: 7,
+    borderBottomWidth: 12,
+    borderLeftColor: "transparent",
+    borderRightColor: "transparent",
+    borderBottomColor: "#050608"
+  },
+  movementTriangleFill: {
+    position: "absolute",
+    left: -4,
+    top: 3,
+    width: 0,
+    height: 0,
+    borderLeftWidth: 4,
+    borderRightWidth: 4,
+    borderBottomWidth: 7,
+    borderLeftColor: "transparent",
+    borderRightColor: "transparent"
+  },
+  movementUp: {
+    borderBottomColor: "#31d79a"
+  },
+  movementDown: {
+    borderBottomColor: "#f0606a"
+  },
+  movementSteadyTrack: {
+    width: 14,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: "#050608",
+    alignItems: "center",
+    justifyContent: "center"
+  },
+  movementSteadyLine: {
+    width: 8,
+    height: 2,
+    borderRadius: 1,
+    backgroundColor: "#dca03d"
   },
   leaderName: {
     color: colors.text,
-    fontFamily: fonts.bold,
-    fontSize: 14,
-    lineHeight: 18,
-    fontWeight: "800"
+    fontFamily: homeFont,
+    fontSize: 15,
+    lineHeight: 19,
+    fontWeight: "400",
+    letterSpacing: 0
   },
-  leaderHandle: {
-    color: colors.muted,
+  leaderScore: {
+    color: "rgba(143,152,165,0.72)",
+    fontFamily: homeFont,
     marginTop: 2,
-    fontSize: 11,
-    lineHeight: 14,
-    fontWeight: "600"
-  },
-  leaderScoreWrap: {
-    minWidth: 92,
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "flex-end",
-    gap: spacing.xs,
-    marginLeft: spacing.sm
-  },
-  activityDot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4
-  },
-  leaderXp: {
-    color: colors.text,
-    fontFamily: fonts.extraBold,
-    fontSize: 11,
-    lineHeight: 14,
-    fontWeight: "900"
+    fontSize: 10,
+    lineHeight: 13,
+    fontWeight: "400",
+    letterSpacing: 0
   },
   emptyLeaderboard: {
-    minHeight: 58,
-    borderRadius: radii.md,
+    minHeight: 66,
     alignItems: "center",
-    justifyContent: "center",
-    backgroundColor: "rgba(255,255,255,0.045)",
-    borderColor: colors.borderSoft,
-    borderWidth: 1
+    justifyContent: "center"
   },
   emptyLeaderboardText: {
     color: colors.muted,
+    fontFamily: homeFont,
     fontSize: 12,
     lineHeight: 16,
-    fontWeight: "700"
+    fontWeight: "400",
+    letterSpacing: 0
+  },
+  medal: {
+    fontFamily: homeFont,
+    fontSize: 25,
+    lineHeight: 31,
+    letterSpacing: 0
+  },
+  fullLeaderboardButton: {
+    minHeight: 46,
+    marginTop: 24,
+    alignSelf: "center",
+    borderRadius: 18,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "rgba(36,36,41,0.96)"
+  },
+  fullLeaderboardButtonPressed: {
+    opacity: 0.72
+  },
+  fullLeaderboardText: {
+    color: colors.text,
+    fontFamily: homeFont,
+    fontSize: 14,
+    lineHeight: 18,
+    fontWeight: "400",
+    letterSpacing: 0
   },
   pressed: {
-    opacity: 0.72,
-    transform: [{ scale: 0.98 }]
+    opacity: 0.66
   },
-  bottomSpacer: {
-    height: 0
+  dashboardTopChrome: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    height: 88,
+    zIndex: 100,
+    elevation: 100,
+    alignItems: "center",
+    overflow: "hidden"
+  },
+  dashboardTopChromeContent: {
+    width: "100%",
+    maxWidth: 472,
+    paddingHorizontal: 20,
+    minHeight: 58,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between"
+  },
+  dashboardTopChromeSurface: {
+    position: "absolute",
+    top: 0,
+    width: "100%",
+    maxWidth: 472,
+    height: 58,
+    backgroundColor: "#000000"
+  },
+  dashboardTopChromeFade: {
+    position: "absolute",
+    top: 48,
+    width: "100%",
+    maxWidth: 472,
+    height: 40
+  },
+  compactBalance: {
+    width: 92,
+    height: 30,
+    alignItems: "center",
+    justifyContent: "center"
+  },
+  compactBalanceText: {
+    color: "rgba(247,248,250,0.82)",
+    fontFamily: homeFont,
+    fontSize: 12,
+    lineHeight: 16,
+    fontWeight: "400",
+    letterSpacing: 0
+  },
+  clubPointsPanel: {
+    width: "100%",
+    maxWidth: 334,
+    minHeight: 458,
+    borderRadius: 26,
+    alignItems: "center",
+    paddingHorizontal: 28,
+    paddingTop: 34,
+    paddingBottom: 28,
+    backgroundColor: "rgba(30,30,34,0.96)",
+    borderWidth: 1,
+    borderColor: "rgba(255,255,255,0.07)",
+    shadowColor: "#000000",
+    shadowOpacity: 0.36,
+    shadowRadius: 30,
+    shadowOffset: { width: 0, height: 16 },
+    elevation: 20
+  },
+  infoModalClose: {
+    position: "absolute",
+    top: 14,
+    right: 14,
+    width: 34,
+    height: 34,
+    borderRadius: 17,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "rgba(255,255,255,0.055)"
+  },
+  infoModalClosePressed: {
+    opacity: 0.55
+  },
+  clubPointsMarkWrap: {
+    width: 76,
+    height: 76,
+    borderRadius: 38,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "rgba(74,199,244,0.08)"
+  },
+  clubPointsTitle: {
+    marginTop: 18,
+    color: "#f7f8fa",
+    fontFamily: homeMediumFont,
+    fontSize: 22,
+    lineHeight: 28,
+    fontWeight: "500",
+    textAlign: "center",
+    letterSpacing: 0
+  },
+  clubPointsBody: {
+    marginTop: 12,
+    color: "rgba(216,221,230,0.64)",
+    fontFamily: homeFont,
+    fontSize: 12.5,
+    lineHeight: 18,
+    fontWeight: "400",
+    textAlign: "center",
+    letterSpacing: 0
+  },
+  clubPointsDivider: {
+    width: "100%",
+    height: StyleSheet.hairlineWidth,
+    marginTop: 22,
+    backgroundColor: "rgba(255,255,255,0.08)"
+  },
+  clubPointsEyebrow: {
+    marginTop: 19,
+    color: "rgba(143,152,165,0.7)",
+    fontFamily: homeMediumFont,
+    fontSize: 9,
+    lineHeight: 13,
+    fontWeight: "500",
+    textAlign: "center",
+    letterSpacing: 0
+  },
+  clubPointsPreviewValue: {
+    marginTop: 3,
+    color: "#f7f8fa",
+    fontFamily: homeFont,
+    fontSize: 31,
+    lineHeight: 38,
+    fontWeight: "400",
+    textAlign: "center",
+    letterSpacing: 0
+  },
+  clubPointsPreviewBody: {
+    marginTop: 5,
+    color: "rgba(216,221,230,0.5)",
+    fontFamily: homeFont,
+    fontSize: 11,
+    lineHeight: 16,
+    fontWeight: "400",
+    textAlign: "center",
+    letterSpacing: 0
+  },
+  betaPreviewPanel: {
+    height: 486,
+    borderRadius: 26,
+    overflow: "hidden",
+    alignItems: "center",
+    backgroundColor: "rgba(30,30,34,0.96)",
+    borderWidth: 1,
+    borderColor: "rgba(255,255,255,0.07)",
+    shadowColor: "#000000",
+    shadowOpacity: 0.36,
+    shadowRadius: 30,
+    shadowOffset: { width: 0, height: 16 },
+    elevation: 20
+  },
+  betaPreviewClose: {
+    position: "absolute",
+    top: 14,
+    right: 14,
+    zIndex: 3,
+    width: 34,
+    height: 34,
+    borderRadius: 17,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "rgba(255,255,255,0.055)"
+  },
+  betaPreviewClosePressed: {
+    opacity: 0.55
+  },
+  betaPreviewVisual: {
+    width: "100%",
+    height: 184,
+    alignItems: "center",
+    justifyContent: "flex-end",
+    paddingBottom: 4,
+    backgroundColor: "rgba(255,255,255,0.018)"
+  },
+  betaPreviewGif: {
+    width: 154,
+    height: 154
+  },
+  betaPreviewSlides: {
+    width: "100%",
+    height: 430,
+    flexGrow: 0
+  },
+  betaPreviewPage: {
+    height: 430
+  },
+  betaPreviewSlide: {
+    height: 246,
+    paddingHorizontal: 26,
+    paddingTop: 26,
+    alignItems: "center"
+  },
+  betaPreviewEyebrow: {
+    color: "rgba(74,199,244,0.82)",
+    fontFamily: homeMediumFont,
+    fontSize: 9,
+    lineHeight: 13,
+    fontWeight: "500",
+    textAlign: "center",
+    letterSpacing: 0
+  },
+  betaPreviewTitle: {
+    marginTop: 10,
+    color: "#f7f8fa",
+    fontFamily: homeMediumFont,
+    fontSize: 21,
+    lineHeight: 27,
+    fontWeight: "500",
+    textAlign: "center",
+    letterSpacing: 0
+  },
+  betaPreviewBody: {
+    marginTop: 13,
+    color: "rgba(216,221,230,0.64)",
+    fontFamily: homeFont,
+    fontSize: 13,
+    lineHeight: 19,
+    fontWeight: "400",
+    textAlign: "center",
+    letterSpacing: 0
+  },
+  betaPreviewDots: {
+    height: 54,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 2
+  },
+  betaPreviewDotTarget: {
+    width: 22,
+    height: 32,
+    alignItems: "center",
+    justifyContent: "center"
+  },
+  betaPreviewDot: {
+    width: 5,
+    height: 5,
+    borderRadius: 3,
+    backgroundColor: "rgba(247,248,250,0.22)"
+  },
+  betaPreviewDotActive: {
+    width: 16,
+    backgroundColor: "rgba(247,248,250,0.9)"
+  },
+  profileSheetRoot: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "flex-end"
+  },
+  profileSheetBackdrop: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: "rgba(0,0,0,0.64)"
+  },
+  profileSheet: {
+    width: "100%",
+    maxWidth: 430,
+    minHeight: 390,
+    alignItems: "center",
+    paddingHorizontal: 24,
+    paddingTop: 12,
+    paddingBottom: 34,
+    borderTopLeftRadius: 30,
+    borderTopRightRadius: 30,
+    borderTopWidth: 1,
+    borderColor: "rgba(255,255,255,0.08)",
+    backgroundColor: "#202024",
+    shadowColor: "#000000",
+    shadowOpacity: 0.4,
+    shadowRadius: 24,
+    shadowOffset: { width: 0, height: -12 },
+    elevation: 24
+  },
+  profileSheetHandle: {
+    width: 50,
+    height: 5,
+    borderRadius: 3,
+    backgroundColor: "rgba(218,222,230,0.55)"
+  },
+  profileSheetAvatarRing: {
+    width: 104,
+    height: 104,
+    marginTop: 26,
+    borderRadius: 52,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "rgba(255,255,255,0.055)"
+  },
+  profileSheetAvatarRingFlush: {
+    backgroundColor: "transparent"
+  },
+  profileSheetName: {
+    maxWidth: "100%",
+    marginTop: 18,
+    color: "#f7f8fa",
+    fontFamily: homeMediumFont,
+    fontSize: 27,
+    lineHeight: 33,
+    fontWeight: "500",
+    textAlign: "center",
+    letterSpacing: 0
+  },
+  profileSheetSurname: {
+    maxWidth: "100%",
+    marginTop: 1,
+    color: "rgba(216,221,230,0.5)",
+    fontFamily: homeMediumFont,
+    fontSize: 10,
+    lineHeight: 14,
+    fontWeight: "500",
+    textAlign: "center",
+    letterSpacing: 0
+  },
+  profileSheetEmail: {
+    maxWidth: "100%",
+    marginTop: 9,
+    color: "rgba(216,221,230,0.58)",
+    fontFamily: homeFont,
+    fontSize: 13,
+    lineHeight: 18,
+    fontWeight: "400",
+    textAlign: "center",
+    letterSpacing: 0
+  },
+  profileSheetDivider: {
+    width: "100%",
+    height: 1,
+    marginTop: 26,
+    backgroundColor: "rgba(255,255,255,0.075)"
+  },
+  profileSheetMetrics: {
+    width: "100%",
+    minHeight: 78,
+    marginTop: 18,
+    borderRadius: 18,
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "rgba(255,255,255,0.045)"
+  },
+  profileSheetMetric: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center"
+  },
+  profileSheetMetricDivider: {
+    width: 1,
+    height: 40,
+    backgroundColor: "rgba(255,255,255,0.08)"
+  },
+  profileSheetMetricLabel: {
+    color: "rgba(216,221,230,0.46)",
+    fontFamily: homeMediumFont,
+    fontSize: 9,
+    lineHeight: 12,
+    fontWeight: "500",
+    letterSpacing: 0
+  },
+  profileSheetMetricValue: {
+    marginTop: 4,
+    color: "#f7f8fa",
+    fontFamily: homeFont,
+    fontSize: 17,
+    lineHeight: 22,
+    fontWeight: "400",
+    letterSpacing: 0
+  },
+  profileSheetDismissHint: {
+    marginTop: 18,
+    color: "rgba(216,221,230,0.36)",
+    fontFamily: homeFont,
+    fontSize: 10,
+    lineHeight: 14,
+    fontWeight: "400",
+    letterSpacing: 0
   }
 });

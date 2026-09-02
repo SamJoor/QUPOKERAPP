@@ -17,6 +17,7 @@ export type PokerGameState = {
   currentBet: number;
   playerCommitted: number;
   botCommitted: number;
+  betUnit: number;
   botLevel: BotLevel;
   message: string;
   handOver: boolean;
@@ -25,10 +26,19 @@ export type PokerGameState = {
   botEvaluation?: HandEvaluation;
 };
 
-const startingStack = 1000;
-const openingBet = 20;
+export type PokerGameConfig = {
+  startingStack?: number;
+  botStartingStack?: number;
+  openingBet?: number;
+};
 
-export function createPokerGame(botLevel: BotLevel = "Beginner"): PokerGameState {
+const defaultStartingStack = 1000;
+const defaultOpeningBet = 20;
+
+export function createPokerGame(botLevel: BotLevel = "Beginner", config: PokerGameConfig = {}): PokerGameState {
+  const startingStack = Math.max(40, Math.round(config.startingStack ?? defaultStartingStack));
+  const botStartingStack = Math.max(40, Math.round(config.botStartingStack ?? startingStack));
+  const openingBet = Math.max(1, Math.min(startingStack, botStartingStack, Math.round(config.openingBet ?? defaultOpeningBet)));
   const deck = shuffleDeck();
   const playerHand = [deck[0], deck[2]];
   const botHand = [deck[1], deck[3]];
@@ -42,10 +52,11 @@ export function createPokerGame(botLevel: BotLevel = "Beginner"): PokerGameState
     street: "preflop",
     pot: openingBet * 2,
     playerStack: startingStack - openingBet,
-    botStack: startingStack - openingBet,
+    botStack: botStartingStack - openingBet,
     currentBet: openingBet,
     playerCommitted: openingBet,
     botCommitted: openingBet,
+    betUnit: openingBet,
     botLevel,
     message: "Practice hand started. Blinds are practice chips only and have no cash value.",
     handOver: false,
@@ -167,14 +178,15 @@ function botResponds(state: PokerGameState, playerRaised: boolean): PokerGameSta
     };
   }
 
-  if (!playerRaised && nextState.currentBet === 0 && confidence > 0.78 && nextState.botStack >= 50) {
+  const leadAmount = Math.max(1, Math.round(nextState.betUnit * 2.5));
+  if (!playerRaised && nextState.currentBet === 0 && confidence > 0.78 && nextState.botStack >= leadAmount) {
     return {
       ...nextState,
-      currentBet: 50,
-      botCommitted: 50,
-      botStack: nextState.botStack - 50,
-      pot: nextState.pot + 50,
-      message: `${state.botLevel} leads for 50 practice chips. Choose call/check, raise, or fold.`
+      currentBet: leadAmount,
+      botCommitted: leadAmount,
+      botStack: nextState.botStack - leadAmount,
+      pot: nextState.pot + leadAmount,
+      message: `${state.botLevel} leads for ${leadAmount} practice chips. Choose call/check, raise, or fold.`
     };
   }
 
@@ -197,7 +209,7 @@ export function playerCheckOrCall(state: PokerGameState): PokerGameState {
   return called;
 }
 
-export function playerBetOrRaise(state: PokerGameState, amount = 50): PokerGameState {
+export function playerBetOrRaise(state: PokerGameState, amount = Math.max(1, Math.round(state.betUnit * 2.5))): PokerGameState {
   if (state.handOver) return state;
   const targetBet = Math.min(state.currentBet + amount, state.playerCommitted + state.playerStack);
   const extra = Math.max(0, targetBet - state.playerCommitted);

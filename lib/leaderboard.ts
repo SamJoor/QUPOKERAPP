@@ -1,6 +1,6 @@
 import { supabase, demoDataEnabled } from "./supabase";
-import { demoLeaderboard } from "./mockData";
-import { LeaderboardEntry, PublicMemberProfile } from "./types";
+import { demoLeaderboard, demoProfile } from "./mockData";
+import { LeaderboardEntry, MemberContactCard, PublicMemberProfile } from "./types";
 
 type LeaderboardRpcRow = {
   user_id: string;
@@ -11,6 +11,10 @@ type LeaderboardRpcRow = {
   rank: number | string;
 };
 
+// Temporary launch roster requested for the current app preview. Keeping this switch
+// beside the data access makes it easy to return to the live RPC leaderboard later.
+const useFeaturedLeaderboardPreview = true;
+
 export function getBadge(points: number) {
   if (points >= 1000) return "Club Legend";
   if (points >= 700) return "Final Table";
@@ -20,14 +24,14 @@ export function getBadge(points: number) {
 }
 
 export async function getMonthlyLeaderboard(): Promise<LeaderboardEntry[]> {
-  if (demoDataEnabled) return demoLeaderboard;
+  if (useFeaturedLeaderboardPreview || demoDataEnabled) return demoLeaderboard;
   const { data, error } = await supabase.rpc("get_monthly_leaderboard");
   if (error) throw error;
   return data ?? [];
 }
 
 export async function getAllTimeLeaderboard(): Promise<LeaderboardEntry[]> {
-  if (demoDataEnabled) return demoLeaderboard;
+  if (useFeaturedLeaderboardPreview || demoDataEnabled) return demoLeaderboard;
   const { data, error } = await supabase.rpc("get_all_time_leaderboard");
   if (error) throw error;
   return ((data ?? []) as LeaderboardRpcRow[]).map((row) => ({
@@ -40,13 +44,35 @@ export async function getAllTimeLeaderboard(): Promise<LeaderboardEntry[]> {
   }));
 }
 
+export async function getMemberContactCard(userId: string): Promise<MemberContactCard | null> {
+  const featuredMember = demoLeaderboard.find((entry) => entry.user_id === userId);
+  if (featuredMember || demoDataEnabled) {
+    const row = featuredMember ?? demoLeaderboard[0];
+    return {
+      user_id: row.user_id,
+      full_name: row.full_name,
+      email: row.email ?? "",
+      avatar_url: row.avatar_url,
+      avatar_key: row.avatar_key
+    };
+  }
+
+  const { data, error } = await supabase.rpc("get_member_contact_card", { p_user_id: userId }).maybeSingle();
+  if (error) throw error;
+  return data as MemberContactCard | null;
+}
+
 export async function getPublicMemberProfile(userId: string): Promise<PublicMemberProfile | null> {
-  if (demoDataEnabled) {
-    const row = demoLeaderboard.find((entry) => entry.user_id === userId) ?? demoLeaderboard[0];
+  const featuredMember = demoLeaderboard.find((entry) => entry.user_id === userId);
+  if (featuredMember || demoDataEnabled) {
+    const row = featuredMember ?? (userId === demoProfile.id
+      ? { user_id: demoProfile.id, full_name: demoProfile.full_name, total_points: demoProfile.total_points, rank: 0 }
+      : demoLeaderboard[0]);
     return {
       user_id: row.user_id,
       full_name: row.full_name,
       avatar_url: row.avatar_url,
+      avatar_key: row.avatar_key,
       major: "Club Member",
       graduation_year: null,
       total_points: row.total_points,
