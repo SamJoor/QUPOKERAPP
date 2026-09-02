@@ -15,7 +15,7 @@ import { router } from "expo-router";
 import { Text } from "react-native-paper";
 import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 import { BlurOverlayModal } from "@/components/BlurOverlayModal";
-import { offlineBetaPreview } from "@/constants/betaPreview";
+import { offlineTablesNotice } from "@/constants/betaPreview";
 import { getCurrentProfile } from "@/lib/auth";
 import type { BotLevel } from "@/lib/pokerGame";
 
@@ -299,13 +299,13 @@ export default function OfflineSetupScreen() {
 
         <View style={styles.bottomArea}>
           <Pressable
-            accessibilityLabel="About the offline table beta preview"
+            accessibilityLabel="About Offline Tables"
             hitSlop={10}
             onPress={() => setBetaPreviewVisible(true)}
             style={({ pressed }) => [styles.betaPreview, pressed && styles.pressed]}
           >
             <MaterialCommunityIcons name="information-outline" size={14} color="rgba(247,248,250,0.48)" />
-            <Text style={styles.betaPreviewText}>Beta preview</Text>
+            <Text style={styles.betaPreviewText}>About</Text>
           </Pressable>
           <Pressable
             accessibilityLabel={`Play demo with a ${formatNumber(selected.amount)} chip buy-in`}
@@ -369,7 +369,7 @@ export default function OfflineSetupScreen() {
       </Animated.View>
 
       <BlurOverlayModal
-        accessibilityLabel="Close Offline Tables beta preview"
+        accessibilityLabel="Close the Offline Tables notice"
         onClose={() => setBetaPreviewVisible(false)}
         visible={betaPreviewVisible}
       >
@@ -392,9 +392,9 @@ export default function OfflineSetupScreen() {
             />
           </View>
           <View style={styles.betaNoticeCopy}>
-            <Text style={styles.betaNoticeEyebrow}>{offlineBetaPreview.eyebrow}</Text>
-            <Text style={styles.betaNoticeTitle}>{offlineBetaPreview.title}</Text>
-            <Text style={styles.betaNoticeBody}>{offlineBetaPreview.body}</Text>
+            <Text style={styles.betaNoticeEyebrow}>{offlineTablesNotice.eyebrow}</Text>
+            <Text style={styles.betaNoticeTitle}>{offlineTablesNotice.title}</Text>
+            <Text style={styles.betaNoticeBody}>{offlineTablesNotice.body}</Text>
           </View>
         </View>
       </BlurOverlayModal>

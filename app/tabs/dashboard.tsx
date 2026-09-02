@@ -9,7 +9,7 @@ import Svg, { Circle } from "react-native-svg";
 import { BlurOverlayModal, ComingSoonModal } from "@/components/BlurOverlayModal";
 import { ProfileAvatar } from "@/components/ProfileAvatar";
 import { resolveAvatarSource } from "@/constants/avatarAssets";
-import { offlineBetaPreview } from "@/constants/betaPreview";
+import { offlineTablesNotice } from "@/constants/betaPreview";
 import { ScreenContainer } from "@/components/ScreenContainer";
 import { LoadingState } from "@/components/StateViews";
 import { colors } from "@/constants/theme";
@@ -70,28 +70,28 @@ const fallbackDailyWins = [18, 14, 11, 8, 6];
 const betaPreviewSlides = [
   {
     id: "welcome",
-    eyebrow: "WELCOME TO THE BETA",
-    title: "Thanks for joining us.",
-    body: "A lot is still under development, and your time testing the app helps us shape what comes next.",
+    eyebrow: "WELCOME TO THE CLUB",
+    title: "Glad you're here.",
+    body: "QU Poker is the home for Quinnipiac's poker club - club events, attendance, and a place to practice between them.",
     artwork: require("../../assets/animations/gary-beta.gif")
   },
   {
     id: "events",
     eyebrow: "THE CLUB EXPERIENCE",
-    title: "Events now. More later.",
-    body: "QU Poker is built around club events and Event points. Those points will support more club experiences and rewards in future updates. Contact us if you would like more information.",
+    title: "Built around events.",
+    body: "Check in at club meetings to collect Event points and keep your attendance record. Points go toward club experiences and rewards. Get in touch through Support if you would like more information.",
     artwork: require("../../assets/animations/gary-beta.gif")
   },
   {
     id: "development",
-    eyebrow: "BUILT IN THE OPEN",
-    title: "Still taking shape.",
-    body: "We took inspiration from the popular poker app Offsuit while developing our own frontend and backend. Both will keep evolving over the coming weeks. Please leave feedback in TestFlight whenever you can.",
+    eyebrow: "PRACTICE ANYTIME",
+    title: "Play between meetings.",
+    body: "Offline Tables deals you a seat against AI opponents so you can work on your game whenever you like. Play money only - no wagering, no purchases, no cash value.",
     artwork: require("../../assets/animations/gary-beta.gif")
   },
   {
     id: "offline",
-    ...offlineBetaPreview,
+    ...offlineTablesNotice,
     artwork: require("../../assets/animations/gary-beta.gif")
   }
 ];
@@ -290,7 +290,7 @@ export default function DashboardScreen() {
         if (!contact) return;
         setSelectedPlayer((current) =>
           current?.user_id === player.user_id
-            ? { ...current, email: contact.email, avatar_url: contact.avatar_url, avatar_key: contact.avatar_key }
+            ? { ...current, avatar_url: contact.avatar_url, avatar_key: contact.avatar_key }
             : current
         );
       })
@@ -499,7 +499,7 @@ export default function DashboardScreen() {
         <View style={[styles.leaderboardHeader, { width: contentColumnWidth }]}>
           <Text style={styles.leaderboardTitle}>Most hands won today</Text>
           <Pressable
-            accessibilityLabel="About beta preview features"
+            accessibilityLabel="About QU Poker"
             hitSlop={10}
             onPress={() => {
               setBetaSlideIndex(0);
@@ -509,7 +509,7 @@ export default function DashboardScreen() {
             style={({ pressed }) => [styles.leaderboardShortcut, pressed && styles.pressed]}
           >
             <MaterialCommunityIcons name="information-outline" size={14} color="rgba(247,248,250,0.48)" />
-            <Text style={styles.leaderboardShortcutText}>Beta preview</Text>
+            <Text style={styles.leaderboardShortcutText}>About</Text>
           </Pressable>
         </View>
 
@@ -644,16 +644,16 @@ export default function DashboardScreen() {
             Check in at club events to collect them. The more events you attend, the more your total grows. Club points are intended for future event registration and other club experiences.
           </Text>
           <View style={styles.clubPointsDivider} />
-          <Text style={styles.clubPointsEyebrow}>FREE PREVIEW BALANCE</Text>
+          <Text style={styles.clubPointsEyebrow}>PRACTICE BALANCE</Text>
           <Text style={styles.clubPointsPreviewValue}>2,000</Text>
           <Text style={styles.clubPointsPreviewBody}>
-            The 2,000 shown today is a placeholder for free in-app currency. It will be free to collect through app activity, with more ways to earn and use it added as the beta develops.
+            Every member starts with 2,000 practice chips for Offline Tables. They are free, have no cash value, and cannot be purchased - more ways to earn and spend them arrive in future updates.
           </Text>
         </View>
       </BlurOverlayModal>
 
       <BlurOverlayModal
-        accessibilityLabel="Close beta preview"
+        accessibilityLabel="Close about panel"
         onClose={() => setBetaPreviewVisible(false)}
         visible={betaPreviewVisible}
       >

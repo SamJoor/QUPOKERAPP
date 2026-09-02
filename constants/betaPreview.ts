@@ -1,5 +1,5 @@
-export const offlineBetaPreview = {
+export const offlineTablesNotice = {
   eyebrow: "OFFLINE TABLES",
-  title: "Play the demo for fun.",
-  body: "Bot poker is still being refined. Experienced players may notice small bugs, and beginners may find some decisions unclear. For now, play to explore the concept, not as a foolproof simulator. We plan to help people learn while still giving experienced players a satisfying game."
+  title: "Play for practice.",
+  body: "Offline Tables deals you a seat against AI opponents so you can work on reading spots and sizing bets between club meetings. Chips are play money - free, with no cash value, and never purchasable. Nothing here is wagered."
 };
