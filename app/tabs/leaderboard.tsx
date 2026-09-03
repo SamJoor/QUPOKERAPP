@@ -35,7 +35,7 @@ export default function LeaderboardScreen() {
         ]}
       />
       {loading ? <LoadingState /> : error ? <ErrorState message={error} /> : rows.map((entry, index) => (
-        <PodiumStrip key={entry.user_id} rank={entry.rank} name={entry.full_name} points={entry.total_points} avatarSource={resolveAvatarSource(entry, index)} onPress={() => router.push(`/members/${entry.user_id}`)} />
+        <PodiumStrip key={entry.user_id} rank={entry.rank} name={entry.full_name} points={entry.total_points} avatarSource={resolveAvatarSource(entry)} onPress={() => router.push(`/members/${entry.user_id}`)} />
       ))}
     </ScreenContainer>
   );

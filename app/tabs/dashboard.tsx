@@ -66,7 +66,6 @@ const gameCards: GameCard[] = [
 ];
 
 const medalLabels = ["🥇", "🥈", "🥉"];
-const fallbackDailyWins = [18, 14, 11, 8, 6];
 const betaPreviewSlides = [
   {
     id: "welcome",
@@ -119,34 +118,8 @@ function getProfileNameParts(fullName: string) {
   };
 }
 
-function getLeaderboardAvatar(player: LeaderboardEntry, index: number, currentUserId?: string) {
-  return resolveAvatarSource(player, player.user_id === currentUserId ? 0 : index + 1);
-}
-
-function getDailyWins(player: LeaderboardEntry, index: number) {
-  return player.daily_wins ?? fallbackDailyWins[index] ?? 0;
-}
-
-function isSamJoor(player: LeaderboardEntry) {
-  return player.full_name.trim().toLowerCase() === "sam joor";
-}
-
-function usesCircularProfileScreenshot(player: LeaderboardEntry) {
-  const memberName = player.full_name.trim().toLowerCase();
-  return memberName === "antonio rosado" || memberName === "josh venditto";
-}
-
-function getAvatarImageScale(player: LeaderboardEntry) {
-  if (usesCircularProfileScreenshot(player)) return 1.52;
-  return isSamJoor(player) ? 1.08 : 1;
-}
-
-function getAvatarImageTranslateY(player: LeaderboardEntry, size: number) {
-  return usesCircularProfileScreenshot(player) ? size * 0.16 : 0;
-}
-
-function usesEdgeToEdgeAvatar(player: LeaderboardEntry) {
-  return isSamJoor(player) || usesCircularProfileScreenshot(player);
+function getLeaderboardAvatar(player: LeaderboardEntry) {
+  return resolveAvatarSource(player);
 }
 
 function OfflineTableArtwork({ source, translateX }: { source: ImageSourcePropType; translateX: Animated.AnimatedInterpolation<number> }) {
@@ -397,11 +370,7 @@ export default function DashboardScreen() {
     outputRange: [1, 0],
     extrapolate: "clamp"
   });
-  const selectedPlayerIndex = selectedPlayer
-    ? Math.max(0, leaders.findIndex((player) => player.user_id === selectedPlayer.user_id))
-    : 0;
   const selectedPlayerName = selectedPlayer ? getProfileNameParts(selectedPlayer.full_name) : null;
-  const selectedPlayerIsSam = selectedPlayer ? isSamJoor(selectedPlayer) : false;
 
   return (
     <ScreenContainer fill padded={false} reserveTabBarSpace={false} scroll={false}>
@@ -497,7 +466,7 @@ export default function DashboardScreen() {
         </ScrollView>
 
         <View style={[styles.leaderboardHeader, { width: contentColumnWidth }]}>
-          <Text style={styles.leaderboardTitle}>Most hands won today</Text>
+          <Text style={styles.leaderboardTitle}>Club points leaderboard</Text>
           <Pressable
             accessibilityLabel="About QU Poker"
             hitSlop={10}
@@ -518,10 +487,10 @@ export default function DashboardScreen() {
             leaderboardRows.map((player, index) => {
               const rank = player.rank || index + 1;
               const movement = player.movement;
-              const dailyWins = getDailyWins(player, index);
+              const points = player.total_points ?? 0;
               return (
                 <Pressable
-                  accessibilityLabel={`${player.full_name}, daily rank ${rank}, ${dailyWins} hands won`}
+                  accessibilityLabel={`${player.full_name}, rank ${rank}, ${formatNumber(points)} club points`}
                   key={player.user_id}
                   onPress={() => openPlayerSheet(player)}
                   style={({ pressed }) => [styles.leaderRow, pressed && styles.leaderRowPressed]}
@@ -535,18 +504,16 @@ export default function DashboardScreen() {
                   </View>
                   <View style={styles.avatarStatus}>
                   <ProfileAvatar
-                    edgeToEdge={usesEdgeToEdgeAvatar(player)}
-                    imageScale={getAvatarImageScale(player)}
-                    imageTranslateY={getAvatarImageTranslateY(player, 36)}
                     size={36}
-                    source={getLeaderboardAvatar(player, index, profile?.id)}
+                    name={player.full_name}
+                    source={getLeaderboardAvatar(player)}
                   />
                   </View>
                   <View style={styles.leaderCopy}>
                     <Text numberOfLines={1} style={styles.leaderName}>
                       {getFirstName(player.full_name)}
                     </Text>
-                    <Text style={styles.leaderScore}>{dailyWins} 🔥</Text>
+                    <Text style={styles.leaderScore}>{formatNumber(points)} pts</Text>
                   </View>
                   <View style={styles.movementEndSlot}>
                     {movement ? <LeaderboardMovementMarker movement={movement} /> : null}
@@ -741,13 +708,11 @@ export default function DashboardScreen() {
             <View style={styles.profileSheetHandle} />
             {selectedPlayer ? (
               <>
-                <View style={[styles.profileSheetAvatarRing, selectedPlayerIsSam && styles.profileSheetAvatarRingFlush]}>
+                <View style={styles.profileSheetAvatarRing}>
                   <ProfileAvatar
-                    edgeToEdge={usesEdgeToEdgeAvatar(selectedPlayer)}
-                    imageScale={getAvatarImageScale(selectedPlayer)}
-                    imageTranslateY={getAvatarImageTranslateY(selectedPlayer, 92)}
                     size={92}
-                    source={getLeaderboardAvatar(selectedPlayer, selectedPlayerIndex, profile?.id)}
+                    name={selectedPlayer.full_name}
+                    source={getLeaderboardAvatar(selectedPlayer)}
                   />
                 </View>
                 <Text numberOfLines={1} style={styles.profileSheetName}>
@@ -761,13 +726,13 @@ export default function DashboardScreen() {
                 <View style={styles.profileSheetDivider} />
                 <View style={styles.profileSheetMetrics}>
                   <View style={styles.profileSheetMetric}>
-                    <Text style={styles.profileSheetMetricLabel}>DAILY RANK</Text>
+                    <Text style={styles.profileSheetMetricLabel}>RANK</Text>
                     <Text style={styles.profileSheetMetricValue}>#{selectedPlayer.rank}</Text>
                   </View>
                   <View style={styles.profileSheetMetricDivider} />
                   <View style={styles.profileSheetMetric}>
-                    <Text style={styles.profileSheetMetricLabel}>HANDS WON</Text>
-                    <Text style={styles.profileSheetMetricValue}>{getDailyWins(selectedPlayer, selectedPlayerIndex)} 🔥</Text>
+                    <Text style={styles.profileSheetMetricLabel}>CLUB POINTS</Text>
+                    <Text style={styles.profileSheetMetricValue}>{formatNumber(selectedPlayer.total_points ?? 0)}</Text>
                   </View>
                 </View>
                 <Text style={styles.profileSheetDismissHint}>Swipe down to close</Text>

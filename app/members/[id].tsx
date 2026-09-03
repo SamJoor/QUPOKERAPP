@@ -68,7 +68,7 @@ export default function PublicMemberProfileScreen() {
     <ScreenContainer>
       <BackButton fallback="/tabs/leaderboard" />
       <View style={styles.header}>
-        <ProfileAvatar size={78} source={resolveAvatarSource(profile)} />
+        <ProfileAvatar name={profile.full_name} size={78} source={resolveAvatarSource(profile)} />
         <Text style={styles.name}>{profile.full_name}</Text>
         <Text style={styles.meta}>
           {profile.major ?? "Club member"}{profile.graduation_year ? ` | Class of ${profile.graduation_year}` : ""}

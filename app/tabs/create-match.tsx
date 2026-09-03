@@ -105,7 +105,7 @@ export default function CreateMatchScreen() {
       {searching ? <LoadingState label="Searching..." /> : null}
       {results.map((member) => (
         <View key={member.id} style={styles.row}>
-          <ProfileAvatar size={40} source={resolveAvatarSource(member)} />
+          <ProfileAvatar name={member.full_name} size={40} source={resolveAvatarSource(member)} />
           <Text style={styles.name}>{member.full_name}</Text>
           <AppButton accessibilityLabel={`Add ${member.full_name} as a friend`} mode="outlined" disabled={busyId === member.id} onPress={() => addFriend(member.id)}>
             {busyId === member.id ? "Sending..." : "Add friend"}
@@ -121,7 +121,7 @@ export default function CreateMatchScreen() {
       ) : friends.length ? (
         friends.map((friendship) => (
           <View key={friendship.id} style={styles.row}>
-            <ProfileAvatar size={40} source={resolveAvatarSource(friendship.friend)} />
+            <ProfileAvatar name={friendship.friend?.full_name} size={40} source={resolveAvatarSource(friendship.friend)} />
             <Text style={styles.name}>{friendship.friend.full_name}</Text>
             <AppButton accessibilityLabel={`Start a practice match with ${friendship.friend.full_name}`} disabled={busyId === friendship.friend.id} onPress={() => startMatchWithFriend(friendship.friend.id)}>
               {busyId === friendship.friend.id ? "Starting..." : "Play"}

@@ -4,7 +4,11 @@ import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { router, useLocalSearchParams } from "expo-router";
 import { Text } from "react-native-paper";
 import { PlayingCardDisplay } from "@/components/PlayingCardDisplay";
+import { ProfileAvatar } from "@/components/ProfileAvatar";
 import { ScreenContainer } from "@/components/ScreenContainer";
+import { resolveAvatarSource } from "@/constants/avatarAssets";
+import { getCurrentProfile } from "@/lib/auth";
+import { Profile } from "@/lib/types";
 import { colors, fonts, radii, spacing, typography } from "@/constants/theme";
 import { Card, compareHands, evaluatePokerHand, suitSymbols } from "@/lib/poker";
 import { BotLevel, createPokerGame, playerBetOrRaise, playerCheckOrCall, playerFold, PokerGameState } from "@/lib/pokerGame";
@@ -102,8 +106,6 @@ const handRankings: HandRanking[] = [
     cards: [{ rank: "A", suit: "S" }, { rank: "J", suit: "H" }, { rank: "8", suit: "D" }, { rank: "5", suit: "C" }, { rank: "2", suit: "S" }]
   }
 ];
-
-const playerAvatar = require("../../assets/profile-photos/sebastian-salazar-avatar.png");
 
 function createTableSeatStates(game: PokerGameState, startingStacks = tablePlayers.map(() => 500)): TableSeatState[] {
   const hands = [
@@ -484,7 +486,13 @@ export default function PlayScreen() {
   const [displayPlayerBet, setDisplayPlayerBet] = useState(game.playerCommitted);
   const entrance = useRef(new Animated.Value(0)).current;
   const exitProgress = useRef(new Animated.Value(0)).current;
+  const [viewer, setViewer] = useState<Profile | null>(null);
   const profileOutline = useRef(new Animated.Value(0)).current;
+
+  useEffect(() => {
+    void getCurrentProfile().then(setViewer).catch(() => undefined);
+  }, []);
+
   const handRankingSheetTranslateY = useRef(new Animated.Value(Math.max(windowHeight, 720))).current;
   const raiseTransition = useRef(new Animated.Value(0)).current;
   const quickRaiseProgress = useRef(new Animated.Value(0)).current;
@@ -1279,10 +1287,12 @@ export default function PlayScreen() {
                     <Text style={styles.handStrength}>{coach.evaluation.hand}</Text>
                     <View style={styles.playerAvatarShell}>
                       {playerIsWinner ? <WinnerConfetti /> : null}
-                      <Image source={playerAvatar} resizeMode="cover" style={styles.playerAvatar} />
+                      <ProfileAvatar edgeToEdge name={viewer?.full_name} size={48} source={resolveAvatarSource(viewer)} />
                     </View>
                     <Text style={styles.playerStack}>{formatDemo(playerFunds)}</Text>
-                    <Text style={styles.profileMiniStat}>SEBASTIAN</Text>
+                    <Text style={styles.profileMiniStat}>
+                      {(viewer?.full_name?.trim().split(/\s+/)[0] ?? "YOU").toUpperCase()}
+                    </Text>
                   </>
                 )}
                 <View pointerEvents="none" style={styles.profilePageDots}>

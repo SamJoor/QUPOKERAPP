@@ -121,7 +121,7 @@ export default function ProfileTabScreen() {
                     onPress={() => router.push("/profile")}
                     style={({ pressed }) => [styles.avatarAction, pressed && styles.pressed]}
                   >
-                    <ProfileAvatar edgeToEdge size={122} source={resolveAvatarSource(profile)} />
+                    <ProfileAvatar edgeToEdge name={profile?.full_name} size={122} source={resolveAvatarSource(profile)} />
                     <View style={styles.editBadge}>
                       <MaterialCommunityIcons color="#050608" name="pencil" size={17} />
                     </View>
@@ -165,7 +165,7 @@ export default function ProfileTabScreen() {
                         const isBusy = busyId === request.id;
                         return (
                           <View key={request.id} style={styles.requestRow}>
-                            <ProfileAvatar edgeToEdge size={46} source={resolveAvatarSource(request.friend)} />
+                            <ProfileAvatar edgeToEdge name={request.friend?.full_name} size={46} source={resolveAvatarSource(request.friend)} />
                             <Text numberOfLines={1} style={styles.requestName}>{request.friend.full_name}</Text>
                             <View style={styles.requestActions}>
                               <Pressable
@@ -209,7 +209,7 @@ export default function ProfileTabScreen() {
                           onPress={() => router.push(`/members/${friendship.friend.id}`)}
                           style={({ pressed }) => [styles.friendRow, pressed && styles.pressed]}
                         >
-                          <ProfileAvatar edgeToEdge size={48} source={resolveAvatarSource(friendship.friend)} />
+                          <ProfileAvatar edgeToEdge name={friendship.friend?.full_name} size={48} source={resolveAvatarSource(friendship.friend)} />
                           <Text numberOfLines={1} style={styles.friendName}>{friendship.friend.full_name}</Text>
                           <MaterialCommunityIcons color="rgba(143,152,165,0.58)" name="chevron-right" size={24} />
                         </Pressable>

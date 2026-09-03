@@ -133,7 +133,7 @@ export default function ProfileScreen() {
     <ScreenContainer>
       <BackButton fallback="/tabs/dashboard" />
       <LabHeader eyebrow="Member profile" title={profile.full_name.split(" ")[0] || "Profile"} subtitle={profile.email} icon="account-star" right={
-        <ProfileAvatar size={58} source={resolveAvatarSource({ full_name: profile.full_name, avatar_url: avatarUrl, avatar_key: avatarKey })} />
+        <ProfileAvatar name={profile.full_name} size={58} source={resolveAvatarSource({ full_name: profile.full_name, avatar_url: avatarUrl, avatar_key: avatarKey })} />
       } />
       <MissionTile icon="camera-outline" title={uploadingAvatar ? "Updating photo..." : "Profile photo"} body="Add a face to your leaderboard and member profile." badge="Edit" onPress={chooseAvatar} />
       <Text style={styles.pickerLabel}>Or pick a club avatar</Text>
