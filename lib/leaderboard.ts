@@ -11,9 +11,11 @@ type LeaderboardRpcRow = {
   rank: number | string;
 };
 
-// Temporary launch roster requested for the current app preview. Keeping this switch
-// beside the data access makes it easy to return to the live RPC leaderboard later.
-const useFeaturedLeaderboardPreview = true;
+// Was true, which served demoLeaderboard from every leaderboard regardless of demo mode -
+// five invented members with fabricated @qu.edu addresses, shown to real testers as though
+// they were the club. Off, so both leaderboards read the live RPCs. Flip it only for a demo
+// where nobody will mistake the roster for real people.
+const useFeaturedLeaderboardPreview = false;
 
 export function getBadge(points: number) {
   if (points >= 1000) return "Club Legend";
@@ -45,9 +47,8 @@ export async function getAllTimeLeaderboard(): Promise<LeaderboardEntry[]> {
 }
 
 export async function getMemberContactCard(userId: string): Promise<MemberContactCard | null> {
-  const featuredMember = demoLeaderboard.find((entry) => entry.user_id === userId);
-  if (featuredMember || demoDataEnabled) {
-    const row = featuredMember ?? demoLeaderboard[0];
+  if (demoDataEnabled) {
+    const row = demoLeaderboard.find((entry) => entry.user_id === userId) ?? demoLeaderboard[0];
     return {
       user_id: row.user_id,
       full_name: row.full_name,
@@ -62,8 +63,8 @@ export async function getMemberContactCard(userId: string): Promise<MemberContac
 }
 
 export async function getPublicMemberProfile(userId: string): Promise<PublicMemberProfile | null> {
-  const featuredMember = demoLeaderboard.find((entry) => entry.user_id === userId);
-  if (featuredMember || demoDataEnabled) {
+  if (demoDataEnabled) {
+    const featuredMember = demoLeaderboard.find((entry) => entry.user_id === userId);
     const row = featuredMember ?? (userId === demoProfile.id
       ? { user_id: demoProfile.id, full_name: demoProfile.full_name, total_points: demoProfile.total_points, rank: 0 }
       : demoLeaderboard[0]);

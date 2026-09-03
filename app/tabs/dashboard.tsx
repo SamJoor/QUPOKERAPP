@@ -758,9 +758,6 @@ export default function DashboardScreen() {
                     {selectedPlayerName.lastName}
                   </Text>
                 ) : null}
-                <Text numberOfLines={1} style={styles.profileSheetEmail}>
-                  concept@qu.edu
-                </Text>
                 <View style={styles.profileSheetDivider} />
                 <View style={styles.profileSheetMetrics}>
                   <View style={styles.profileSheetMetric}>
@@ -1517,17 +1514,6 @@ const styles = StyleSheet.create({
     fontSize: 10,
     lineHeight: 14,
     fontWeight: "500",
-    textAlign: "center",
-    letterSpacing: 0
-  },
-  profileSheetEmail: {
-    maxWidth: "100%",
-    marginTop: 9,
-    color: "rgba(216,221,230,0.58)",
-    fontFamily: homeFont,
-    fontSize: 13,
-    lineHeight: 18,
-    fontWeight: "400",
     textAlign: "center",
     letterSpacing: 0
   },
