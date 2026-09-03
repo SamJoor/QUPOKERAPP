@@ -4,7 +4,7 @@ import { useFocusEffect } from "@react-navigation/native";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 import { router } from "expo-router";
-import { Text } from "react-native-paper";
+import { Snackbar, Text } from "react-native-paper";
 import Svg, { Circle } from "react-native-svg";
 import { BlurOverlayModal, ComingSoonModal } from "@/components/BlurOverlayModal";
 import { ProfileAvatar } from "@/components/ProfileAvatar";
@@ -15,6 +15,7 @@ import { LoadingState } from "@/components/StateViews";
 import { colors } from "@/constants/theme";
 import { useEventPoints } from "@/contexts/EventPointsContext";
 import { getCurrentProfile } from "@/lib/auth";
+import { claimDailyChips, dailyChipsAvailable } from "@/lib/chips";
 import { getMemberContactCard, getMonthlyLeaderboard } from "@/lib/leaderboard";
 import { LeaderboardEntry, Profile } from "@/lib/types";
 
@@ -184,6 +185,28 @@ function ClubPointMark({ size = 20 }: { size?: number }) {
 
 export default function DashboardScreen() {
   const { eventPoints } = useEventPoints();
+  const [chipNotice, setChipNotice] = useState("");
+  const [claimedChips, setClaimedChips] = useState<number | null>(null);
+  const [chipClaimAvailable, setChipClaimAvailable] = useState(false);
+  const [claimingChips, setClaimingChips] = useState(false);
+
+  useEffect(() => {
+    void dailyChipsAvailable().then(setChipClaimAvailable).catch(() => undefined);
+  }, []);
+
+  const onClaimChips = useCallback(async () => {
+    setClaimingChips(true);
+    try {
+      const result = await claimDailyChips();
+      setClaimedChips(result.chip_balance);
+      setChipClaimAvailable(false);
+      setChipNotice(result.status === "success" ? `+${result.chips_awarded} chips collected.` : "Today's chips are already collected.");
+    } catch (err) {
+      setChipNotice(err instanceof Error ? err.message : "Unable to collect chips right now.");
+    } finally {
+      setClaimingChips(false);
+    }
+  }, []);
   const { width: windowWidth, height: windowHeight } = useWindowDimensions();
   const [profile, setProfile] = useState<Profile | null>(null);
   const [leaders, setLeaders] = useState<LeaderboardEntry[]>([]);
@@ -323,7 +346,7 @@ export default function DashboardScreen() {
     );
   }
 
-  const spendablePoints = profile?.spendable_points ?? profile?.total_points ?? 0;
+  const chipBalance = claimedChips ?? profile?.chips ?? 0;
   const leaderboardRows = leaders.slice(0, 5);
   const dailyRank = leaders.find((player) => player.user_id === profile?.id)?.rank ?? 0;
   const dashboardWidth = Math.min(windowWidth, 472);
@@ -393,17 +416,24 @@ export default function DashboardScreen() {
         >
           <View style={styles.balanceComposition}>
             <View style={styles.balanceRow}>
-              <Text style={styles.balance}>{formatNumber(spendablePoints)}</Text>
+              <Text style={styles.balance}>{formatNumber(chipBalance)}</Text>
             </View>
           </View>
           <Pressable
-            accessibilityLabel="About club points"
+            accessibilityLabel={chipClaimAvailable ? "Collect today's 500 chips" : "About chips and club points"}
+            disabled={claimingChips}
             hitSlop={10}
-            onPress={() => setClubPointsVisible(true)}
+            onPress={() => (chipClaimAvailable ? void onClaimChips() : setClubPointsVisible(true))}
             style={({ pressed }) => [styles.balanceHelp, pressed && styles.pressed]}
           >
-            <MaterialCommunityIcons name="help-circle-outline" size={14} color="rgba(247,248,250,0.48)" />
-            <Text style={styles.balanceHelpText}>Club points</Text>
+            <MaterialCommunityIcons
+              name={chipClaimAvailable ? "gift-outline" : "help-circle-outline"}
+              size={14}
+              color="rgba(247,248,250,0.48)"
+            />
+            <Text style={styles.balanceHelpText}>
+              {claimingChips ? "Collecting..." : chipClaimAvailable ? "Collect +500 chips" : "Chips"}
+            </Text>
           </Pressable>
         </Animated.View>
 
@@ -571,7 +601,7 @@ export default function DashboardScreen() {
                 { opacity: compactHeaderOpacity, transform: [{ translateY: compactBalanceTranslateY }] }
               ]}
             >
-              <Text style={styles.compactBalanceText}>{formatNumber(spendablePoints)}</Text>
+              <Text style={styles.compactBalanceText}>{formatNumber(chipBalance)}</Text>
             </Animated.View>
             <Pressable
               accessibilityLabel="Rank preview coming soon"
@@ -587,6 +617,9 @@ export default function DashboardScreen() {
       </View>
 
       <ComingSoonModal onClose={() => setComingSoonVisible(false)} visible={comingSoonVisible} />
+      <Snackbar duration={3000} onDismiss={() => setChipNotice("")} visible={Boolean(chipNotice)}>
+        {chipNotice}
+      </Snackbar>
 
       <BlurOverlayModal
         accessibilityLabel="Close club points information"
@@ -606,15 +639,21 @@ export default function DashboardScreen() {
           <View style={styles.clubPointsMarkWrap}>
             <ClubPointMark size={54} />
           </View>
-          <Text style={styles.clubPointsTitle}>Club points</Text>
+          <Text style={styles.clubPointsTitle}>Chips and club points</Text>
           <Text style={styles.clubPointsBody}>
-            Check in at club events to collect them. The more events you attend, the more your total grows. Club points are intended for future event registration and other club experiences.
+            Two different things, and you cannot swap one for the other.
           </Text>
           <View style={styles.clubPointsDivider} />
-          <Text style={styles.clubPointsEyebrow}>PRACTICE BALANCE</Text>
-          <Text style={styles.clubPointsPreviewValue}>2,000</Text>
+          <Text style={styles.clubPointsEyebrow}>CHIPS</Text>
+          <Text style={styles.clubPointsPreviewValue}>{formatNumber(chipBalance)}</Text>
           <Text style={styles.clubPointsPreviewBody}>
-            Every member starts with 2,000 practice chips for Offline Tables. They are free, have no cash value, and cannot be purchased - more ways to earn and spend them arrive in future updates.
+            What you play with at every table in the app. You start with 2,000 and can collect 500 more each day from the Dashboard. Chips are free, have no cash value, and cannot be purchased.
+          </Text>
+          <View style={styles.clubPointsDivider} />
+          <Text style={styles.clubPointsEyebrow}>CLUB POINTS</Text>
+          <Text style={styles.clubPointsPreviewValue}>{formatNumber(eventPoints)}</Text>
+          <Text style={styles.clubPointsPreviewBody}>
+            Earned by checking in at club events. They rank you on the leaderboard and go toward club rewards and tournament entries. Playing poker never changes them.
           </Text>
         </View>
       </BlurOverlayModal>

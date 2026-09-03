@@ -21,7 +21,10 @@ export type Profile = {
   role: Role;
   total_points: number;
   lifetime_points: number;
+  /** Club currency. Earned at events, spent on rewards and tournament entries. */
   spendable_points: number;
+  /** In-game currency for games in the app. Granted, never earned at events. */
+  chips: number;
   created_at: string;
   updated_at: string;
 };

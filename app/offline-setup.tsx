@@ -154,7 +154,7 @@ export default function OfflineSetupScreen() {
   useEffect(() => {
     void getCurrentProfile()
       .then((profile) => {
-        const nextBalance = Math.max(0, profile?.spendable_points ?? profile?.total_points ?? 2000);
+        const nextBalance = Math.max(0, profile?.chips ?? 0);
         setBalance(nextBalance);
         setSelectedIndex((current) => {
           if (buyInPresets[current].amount <= nextBalance) return current;

@@ -86,6 +86,7 @@ export async function getAdminMembers(): Promise<Profile[]> {
       total_points: entry.total_points,
       lifetime_points: entry.total_points,
       spendable_points: entry.total_points,
+      chips: 2000,
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString()
     }));

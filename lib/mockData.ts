@@ -13,7 +13,8 @@ export const demoProfile: Profile = {
   role: "member",
   total_points: 690,
   lifetime_points: 690,
-  spendable_points: 2000,
+  spendable_points: 690,
+  chips: 2000,
   created_at: new Date().toISOString(),
   updated_at: new Date().toISOString()
 };
