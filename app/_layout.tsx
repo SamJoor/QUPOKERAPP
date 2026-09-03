@@ -61,6 +61,14 @@ export default function RootLayout() {
         <Stack.Screen name="onboarding/complete-profile" options={{ gestureEnabled: false }} />
         <Stack.Screen name="tabs" options={{ gestureEnabled: false }} />
         <Stack.Screen
+          name="room-lobby"
+          options={{
+            animation: "slide_from_right",
+            contentStyle: { backgroundColor: "#000000" },
+            gestureEnabled: true
+          }}
+        />
+        <Stack.Screen
           name="offline-setup"
           options={{
             animation: "none",

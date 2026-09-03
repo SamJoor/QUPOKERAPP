@@ -1,17 +1,17 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { Pressable, StyleSheet, View } from "react-native";
+import { Platform, Pressable, ScrollView, StyleSheet, View } from "react-native";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 import { router, useLocalSearchParams } from "expo-router";
+import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 import { Text } from "react-native-paper";
-import { BackButton } from "@/components/BackButton";
 import { PlayingCardDisplay } from "@/components/PlayingCardDisplay";
-import { ScreenContainer } from "@/components/ScreenContainer";
+import { ProfileAvatar } from "@/components/ProfileAvatar";
 import { ErrorState, LoadingState } from "@/components/StateViews";
-import { colors, fonts, radii, spacing } from "@/constants/theme";
+import { ScreenContainer } from "@/components/ScreenContainer";
 import { getCurrentUser } from "@/lib/auth";
+import { Card } from "@/lib/poker";
 import {
-  dealPokerMatch,
   getMyHoleCards,
   getPokerMatch,
   getShowdownHoleCards,
@@ -20,33 +20,27 @@ import {
   subscribeToPokerMatch,
   updatePokerMatchState
 } from "@/lib/pokerArena";
-import { Card } from "@/lib/poker";
+import { dealPokerTable } from "@/lib/pokerRooms";
 import {
   advanceStreet,
+  createTableState,
   applyBetOrRaise,
   applyCheckOrCall,
   applyFold,
-  createInitialMatchState,
   isBettingRoundClosed,
-  MatchGameState,
   nextStreet,
   resolveShowdown,
-  SeatNumber
-} from "@/lib/pokerMatch";
+  ShowdownHands,
+  TableSeat,
+  TableState
+} from "@/lib/pokerTable";
 
-type Meta = {
-  myUserId: string;
-  mySeat: SeatNumber;
-  opponentSeat: SeatNumber;
-  opponentUserId: string;
-  opponentName: string;
-};
+const homeFont = Platform.OS === "ios" ? "System" : "InstrumentSans_400Regular";
+const homeMediumFont = Platform.OS === "ios" ? "System" : "InstrumentSans_500Medium";
 
-function seatState(state: MatchGameState, seat: SeatNumber) {
-  return seat === 1 ? state.seat1 : state.seat2;
-}
+type SeatMeta = { seat: number; user_id: string | null; display_name: string };
 
-function getStreetLabel(street: MatchGameState["street"]) {
+function streetLabel(street: TableState["street"]) {
   if (street === "preflop") return "Pre-flop";
   if (street === "flop") return "Flop";
   if (street === "turn") return "Turn";
@@ -54,318 +48,522 @@ function getStreetLabel(street: MatchGameState["street"]) {
   return "Showdown";
 }
 
-function CardSlot({ card, hidden = false }: { card?: Card; hidden?: boolean }) {
+function CardSlot({ card, hidden = false, small = false }: { card?: Card; hidden?: boolean; small?: boolean }) {
   if (!card || hidden) {
-    return (
-      <View style={styles.cardBack}>
-        <MaterialCommunityIcons name="cards-playing-spade-multiple" size={20} color="rgba(247,248,250,0.34)" />
-      </View>
-    );
+    return <View style={[styles.cardBack, small && styles.cardBackSmall]} />;
   }
-  return <PlayingCardDisplay card={card} />;
+  return (
+    <View style={small ? styles.cardSmall : undefined}>
+      <PlayingCardDisplay card={card} />
+    </View>
+  );
+}
+
+/** One opponent. Shows their stack, what they have put in this street, and their state - the
+ * three things you actually need to read to act. */
+function OpponentSeat({
+  seat,
+  name,
+  isTurn,
+  cards
+}: {
+  seat: TableSeat;
+  name: string;
+  isTurn: boolean;
+  cards?: Card[];
+}) {
+  const dimmed = seat.status === "folded" || seat.status === "out";
+  return (
+    <View style={[styles.opponent, dimmed && styles.opponentFolded, isTurn && styles.opponentTurn]}>
+      <ProfileAvatar name={name} size={38} />
+      <Text numberOfLines={1} style={styles.opponentName}>
+        {name}
+      </Text>
+      <Text style={styles.opponentStack}>{seat.stack}</Text>
+      {seat.status === "allin" ? (
+        <Text style={styles.opponentTag}>ALL IN</Text>
+      ) : seat.status === "folded" ? (
+        <Text style={styles.opponentTag}>FOLDED</Text>
+      ) : seat.committed > 0 ? (
+        <Text style={styles.opponentBet}>{seat.committed}</Text>
+      ) : null}
+      {cards?.length ? (
+        <View style={styles.opponentCards}>
+          {cards.map((card, index) => (
+            <CardSlot card={card} key={index} small />
+          ))}
+        </View>
+      ) : null}
+    </View>
+  );
 }
 
 export default function LiveMatchScreen() {
   const { matchId } = useLocalSearchParams<{ matchId: string }>();
-  const [meta, setMeta] = useState<Meta | null>(null);
-  const [state, setState] = useState<MatchGameState | null>(null);
+  const insets = useSafeAreaInsets();
+
+  const [state, setState] = useState<TableState | null>(null);
+  const [seatMeta, setSeatMeta] = useState<SeatMeta[]>([]);
+  const [mySeat, setMySeat] = useState<number | null>(null);
   const [myHoleCards, setMyHoleCards] = useState<Card[]>([]);
-  const [opponentHoleCards, setOpponentHoleCards] = useState<Card[] | null>(null);
-  const [waitingForOpponent, setWaitingForOpponent] = useState(false);
+  const [revealed, setRevealed] = useState<Record<number, Card[]>>({});
   const [error, setError] = useState("");
   const [acting, setActing] = useState(false);
-  const metaRef = useRef<Meta | null>(null);
-  metaRef.current = meta;
+  const [waiting, setWaiting] = useState(false);
 
-  const loadShowdownIfNeeded = useCallback(async (nextState: MatchGameState) => {
-    if (nextState.street !== "showdown" || !metaRef.current) return;
-    try {
-      const rows = await getShowdownHoleCards(matchId);
-      const opponentRow = rows.find((row) => row.user_id === metaRef.current?.opponentUserId);
-      if (opponentRow) setOpponentHoleCards(opponentRow.cards);
-    } catch {
-      // showdown reveal not ready yet - the realtime refresh will retry
-    }
-  }, [matchId]);
+  // Both the realtime handler and the poll can see an undealt table at once; without this they
+  // would both call deal_poker_table and the second would fail with "Hand already dealt".
+  const dealingRef = useRef(false);
+
+  const loadShowdown = useCallback(
+    async (next: TableState) => {
+      if (next.street !== "showdown") return;
+      try {
+        const rows = await getShowdownHoleCards(matchId);
+        setRevealed(Object.fromEntries(rows.map((row) => [row.seat, row.cards])));
+      } catch {
+        // Not published yet - the realtime refresh will come back around.
+      }
+    },
+    [matchId]
+  );
 
   useEffect(() => {
     let cancelled = false;
-    let pollHandle: ReturnType<typeof setInterval> | undefined;
+    let currentUserId: string | null = null;
     let unsubscribe: () => void = () => undefined;
+    let pollHandle: ReturnType<typeof setInterval> | undefined;
 
-    async function refreshFromRow(row: PokerMatchWithPlayers) {
-      const gs = (row.game_state && Object.keys(row.game_state).length ? row.game_state : createInitialMatchState()) as unknown as MatchGameState;
+    async function openTable(row: PokerMatchWithPlayers, seated: number[]) {
+      const dealt = await dealPokerTable(row.id);
+      const opening = createTableState(dealt.seats ?? seated, 20, 1000, dealt.button_seat);
+      const firstUser = row.players.find((player) => player.seat === opening.currentTurnSeat)?.user_id ?? null;
+      await updatePokerMatchState(
+        row.id,
+        "deal",
+        { buttonSeat: dealt.button_seat },
+        opening as unknown as Record<string, unknown>,
+        firstUser
+      );
       if (cancelled) return;
-      setState(gs);
-      await loadShowdownIfNeeded(gs);
+      setWaiting(false);
+      setState(opening);
+      setMyHoleCards(await getMyHoleCards(row.id).catch(() => []));
     }
 
-    async function startMatch(row: PokerMatchWithPlayers, myUserId: string) {
-      const mine = row.players.find((player) => player.user_id === myUserId);
-      const theirs = row.players.find((player) => player.user_id !== myUserId);
-      if (!mine || !theirs) return;
-      const nextMeta: Meta = {
-        myUserId,
-        mySeat: mine.seat,
-        opponentSeat: theirs.seat,
-        opponentUserId: theirs.user_id ?? "",
-        opponentName: theirs.display_name
-      };
-      setMeta(nextMeta);
-
-      let freshRow = row;
-      if (!row.game_state || !Object.keys(row.game_state).length) {
-        await dealPokerMatch(matchId);
-        freshRow = (await getPokerMatch(matchId)) ?? row;
-      }
-      const cards = await getMyHoleCards(matchId);
+    async function absorb(row: PokerMatchWithPlayers) {
       if (cancelled) return;
-      setMyHoleCards(cards);
-      await refreshFromRow(freshRow);
+      setSeatMeta(
+        row.players
+          .map((player) => ({
+            seat: player.seat,
+            user_id: player.user_id ?? null,
+            display_name: player.display_name
+          }))
+          .sort((a, b) => a.seat - b.seat)
+      );
 
-      unsubscribe = subscribeToPokerMatch(matchId, async () => {
-        const refreshed = await getPokerMatch(matchId).catch(() => null);
-        if (!refreshed || cancelled) return;
-        await refreshFromRow(refreshed);
-      }).unsubscribe;
+      const published = row.game_state && Object.keys(row.game_state).length
+        ? (row.game_state as unknown as TableState)
+        : null;
+
+      // Rooms are dealt from the lobby, but friend invites, invite links and the queue drop
+      // straight in here with no opening state. Whoever created the match deals in that case,
+      // so those routes keep working without a lobby step.
+      if (!published?.seats?.length) {
+        const seated = row.players.filter((player) => player.user_id).map((player) => player.seat);
+        const iAmCreator = Boolean(currentUserId && row.created_by === currentUserId);
+        if (iAmCreator && seated.length >= 2 && !dealingRef.current) {
+          dealingRef.current = true;
+          try {
+            await openTable(row, seated);
+          } catch (err) {
+            if (!cancelled) setError(err instanceof Error ? err.message : "Could not deal.");
+          } finally {
+            dealingRef.current = false;
+          }
+          return;
+        }
+        setWaiting(true);
+        return;
+      }
+      setWaiting(false);
+      setState(published);
+      await loadShowdown(published);
     }
 
     async function bootstrap() {
       try {
         const user = await getCurrentUser();
         if (!user) throw new Error("Sign in required.");
+        currentUserId = user.id;
         const row = await getPokerMatch(matchId);
-        if (!row) throw new Error("This match could not be found.");
+        if (!row) throw new Error("This table could not be found.");
 
-        if (row.players.length < 2) {
-          setWaitingForOpponent(true);
-          pollHandle = setInterval(async () => {
-            const refreshed = await getPokerMatch(matchId).catch(() => null);
-            if (refreshed && refreshed.players.length === 2 && !cancelled) {
-              clearInterval(pollHandle);
-              setWaitingForOpponent(false);
-              startMatch(refreshed, user.id);
-            }
-          }, 2500);
-          return;
+        const mine = row.players.find((player) => player.user_id === user.id);
+        if (!mine) throw new Error("You are not seated at this table.");
+        setMySeat(mine.seat);
+
+        await absorb(row);
+        try {
+          setMyHoleCards(await getMyHoleCards(matchId));
+        } catch {
+          // Cards arrive when the host deals.
         }
-        await startMatch(row, user.id);
+
+        unsubscribe = subscribeToPokerMatch(matchId, async () => {
+          const refreshed = await getPokerMatch(matchId).catch(() => null);
+          if (!refreshed || cancelled) return;
+          if (!myHoleCards.length) {
+            setMyHoleCards(await getMyHoleCards(matchId).catch(() => []));
+          }
+          await absorb(refreshed);
+        }).unsubscribe;
+
+        // Realtime can miss the very first publish if the host dealt a moment before this
+        // screen subscribed, so poll gently until a state exists.
+        pollHandle = setInterval(async () => {
+          if (cancelled) return;
+          const refreshed = await getPokerMatch(matchId).catch(() => null);
+          if (refreshed?.game_state && Object.keys(refreshed.game_state).length) {
+            if (!myHoleCards.length) setMyHoleCards(await getMyHoleCards(matchId).catch(() => []));
+            await absorb(refreshed);
+            if (pollHandle) clearInterval(pollHandle);
+          }
+        }, 2500);
       } catch (err) {
-        if (!cancelled) setError(err instanceof Error ? err.message : "Unable to load this match.");
+        if (!cancelled) setError(err instanceof Error ? err.message : "Unable to load this table.");
       }
     }
 
-    bootstrap();
+    void bootstrap();
     return () => {
       cancelled = true;
       if (pollHandle) clearInterval(pollHandle);
       unsubscribe();
     };
-  }, [matchId, loadShowdownIfNeeded]);
+    // myHoleCards is deliberately not a dependency - it would tear down the subscription on
+    // every deal. The closures read it only to decide whether to fetch once.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [matchId, loadShowdown]);
 
-  async function pushState(actionType: string, nextState: MatchGameState, nextTurnUserId: string | null) {
-    setState(nextState);
-    await updatePokerMatchState(matchId, actionType, {}, nextState as unknown as Record<string, unknown>, nextTurnUserId);
-  }
+  const userIdForSeat = useCallback(
+    (seat: number) => seatMeta.find((entry) => entry.seat === seat)?.user_id ?? null,
+    [seatMeta]
+  );
 
-  async function settleBettingRoundIfClosed(candidate: MatchGameState) {
-    if (!isBettingRoundClosed(candidate) || candidate.handOver) return candidate;
-    const upcoming = nextStreet(candidate.street);
+  const nameForSeat = useCallback(
+    (seat: number) => seatMeta.find((entry) => entry.seat === seat)?.display_name ?? `Seat ${seat}`,
+    [seatMeta]
+  );
 
-    if (upcoming === "showdown") {
-      const response = (await revealCommunityStreet(matchId, "showdown")) as { community?: Card[] };
-      const revealed = advanceStreet(candidate, response.community ?? []);
-      const opponentCards = (await getShowdownHoleCards(matchId)).find((row) => row.user_id === metaRef.current?.opponentUserId)?.cards ?? [];
-      const mySeat = metaRef.current?.mySeat ?? 1;
-      const seat1Hand = mySeat === 1 ? myHoleCards : opponentCards;
-      const seat2Hand = mySeat === 1 ? opponentCards : myHoleCards;
-      const settled = resolveShowdown(revealed, seat1Hand, seat2Hand);
-      if (mySeat === 1) setOpponentHoleCards(seat2Hand);
-      else setOpponentHoleCards(seat1Hand);
-      return settled;
-    }
+  const settleIfRoundClosed = useCallback(
+    async (candidate: TableState): Promise<TableState> => {
+      if (candidate.handOver || !isBettingRoundClosed(candidate)) return candidate;
+      const upcoming = nextStreet(candidate.street);
 
-    const response = (await revealCommunityStreet(matchId, upcoming)) as { community?: Card[] };
-    return advanceStreet(candidate, response.community ?? []);
-  }
-
-  async function handleAction(action: "fold" | "call" | "raise") {
-    if (!state || !meta || acting) return;
-    const myTurnUserId = meta.myUserId;
-    if (state.currentTurnSeat !== meta.mySeat) return;
-    setActing(true);
-    try {
-      let next =
-        action === "fold" ? applyFold(state, meta.mySeat) : action === "raise" ? applyBetOrRaise(state, meta.mySeat, 60) : applyCheckOrCall(state, meta.mySeat);
-
-      if (action !== "fold") {
-        next = await settleBettingRoundIfClosed(next);
+      if (upcoming === "showdown") {
+        const response = (await revealCommunityStreet(matchId, "showdown")) as { community?: Card[] };
+        const atShowdown = advanceStreet(candidate, response.community ?? []);
+        const rows = await getShowdownHoleCards(matchId);
+        const hands: ShowdownHands = Object.fromEntries(rows.map((row) => [row.seat, row.cards]));
+        setRevealed(hands);
+        return resolveShowdown(atShowdown, hands);
       }
 
-      const nextTurnUserId = next.handOver ? null : next.currentTurnSeat === meta.mySeat ? myTurnUserId : meta.opponentUserId;
-      await pushState(action, next, nextTurnUserId);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Unable to submit that action.");
-    } finally {
-      setActing(false);
-    }
-  }
+      const response = (await revealCommunityStreet(matchId, upcoming)) as { community?: Card[] };
+      return advanceStreet(candidate, response.community ?? []);
+    },
+    [matchId]
+  );
+
+  const act = useCallback(
+    async (action: "fold" | "call" | "raise") => {
+      if (!state || mySeat === null || acting) return;
+      if (state.handOver || state.currentTurnSeat !== mySeat) return;
+
+      setActing(true);
+      try {
+        let next =
+          action === "fold"
+            ? applyFold(state, mySeat)
+            : action === "raise"
+              ? applyBetOrRaise(state, mySeat, Math.max(state.minRaise, state.bigBlind))
+              : applyCheckOrCall(state, mySeat);
+
+        next = await settleIfRoundClosed(next);
+        setState(next);
+        await updatePokerMatchState(
+          matchId,
+          action,
+          {},
+          next as unknown as Record<string, unknown>,
+          next.handOver ? null : userIdForSeat(next.currentTurnSeat)
+        );
+      } catch (err) {
+        setError(err instanceof Error ? err.message : "Unable to submit that action.");
+      } finally {
+        setActing(false);
+      }
+    },
+    [acting, matchId, mySeat, settleIfRoundClosed, state, userIdForSeat]
+  );
 
   if (error) {
     return (
       <ScreenContainer>
-        <BackButton fallback="/tabs/dashboard" />
         <ErrorState message={error} />
       </ScreenContainer>
     );
   }
 
-  if (waitingForOpponent) {
+  if (waiting || !state || mySeat === null) {
     return (
       <ScreenContainer>
-        <BackButton fallback="/tabs/dashboard" />
-        <LoadingState label="Waiting for your opponent to join..." />
+        <LoadingState label={waiting ? "Waiting for the host to deal..." : "Loading the table..."} />
       </ScreenContainer>
     );
   }
 
-  if (!meta || !state) {
-    return (
-      <ScreenContainer>
-        <BackButton fallback="/tabs/dashboard" />
-        <LoadingState label="Loading the table..." />
-      </ScreenContainer>
-    );
-  }
-
-  const mine = seatState(state, meta.mySeat);
-  const theirs = seatState(state, meta.opponentSeat);
-  const myTurn = !state.handOver && state.currentTurnSeat === meta.mySeat;
-  const toCall = Math.max(0, state.currentBet - mine.committed);
-  const callLabel = toCall > 0 ? `Call ${toCall}` : "Check";
-  const communitySlots = [0, 1, 2, 3, 4].map((index) => state.community[index]);
-  const resultLabel =
-    state.result === null
-      ? ""
-      : state.result === "split"
-        ? "Split pot"
-        : state.result === meta.mySeat
-          ? "You win the practice pot"
-          : `${meta.opponentName} wins the practice pot`;
+  const me = state.seats.find((seat) => seat.seat === mySeat);
+  const opponents = state.seats.filter((seat) => seat.seat !== mySeat);
+  const myTurn = !state.handOver && state.currentTurnSeat === mySeat;
+  const toCall = Math.max(0, state.currentBet - (me?.committed ?? 0));
+  const pot = state.seats.reduce((sum, seat) => sum + seat.totalCommitted, 0);
+  const canAct = myTurn && me?.status === "active" && !acting;
 
   return (
-    <ScreenContainer padded={false}>
-      <LinearGradient colors={["#06080c", "#020407", "#030304"]} locations={[0, 0.55, 1]} style={styles.screen}>
-        <View style={styles.header}>
-          <View>
-            <Text style={styles.eyebrow}>Live practice match</Text>
-            <Text style={styles.title}>vs {meta.opponentName}</Text>
-          </View>
-          <Pressable accessibilityLabel="Back to dashboard" hitSlop={10} onPress={() => router.replace("/tabs/dashboard")}>
-            <MaterialCommunityIcons name="close" size={24} color={colors.text} />
-          </Pressable>
-        </View>
-
-        <LinearGradient colors={["rgba(12,53,95,0.28)", "rgba(255,255,255,0.045)"]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.tableCard}>
-          <View style={styles.tableTop}>
-            <Text style={styles.street}>{getStreetLabel(state.street)}</Text>
-            <View style={styles.potPill}>
-              <Text style={styles.potLabel}>Pot</Text>
-              <Text style={styles.potValue}>{state.pot}</Text>
-            </View>
+    <View style={styles.routeSurface}>
+      <SafeAreaView edges={["left", "right"]} style={styles.safeArea}>
+        <LinearGradient colors={["#0b1016", "#05070a", "#000000"]} locations={[0, 0.5, 1]} style={styles.felt}>
+          <View style={[styles.topBar, { paddingTop: Math.max(insets.top, 12) }]}>
+            <Pressable
+              accessibilityLabel="Leave the table"
+              hitSlop={10}
+              onPress={() => router.back()}
+              style={styles.iconButton}
+            >
+              <MaterialCommunityIcons color="rgba(247,248,250,0.86)" name="arrow-left" size={24} />
+            </Pressable>
+            <Text style={styles.street}>{streetLabel(state.street)}</Text>
+            <View style={styles.iconButton} />
           </View>
 
-          <View style={styles.opponentRow}>
-            <View style={styles.aiAvatar}>
-              <MaterialCommunityIcons name="account" size={22} color={colors.gold} />
-            </View>
-            <View style={styles.opponentCopy}>
-              <Text style={styles.opponentName}>{meta.opponentName}</Text>
-              <Text style={styles.opponentMeta}>{theirs.stack} practice chips {theirs.status === "folded" ? "· folded" : ""}</Text>
-            </View>
-            <View style={styles.hiddenHand}>
-              <CardSlot hidden={state.street !== "showdown"} card={opponentHoleCards?.[0]} />
-              <CardSlot hidden={state.street !== "showdown"} card={opponentHoleCards?.[1]} />
-            </View>
-          </View>
-
-          <View style={styles.boardRow}>
-            {communitySlots.map((card, index) => (
-              <CardSlot key={`${card?.rank ?? "empty"}-${card?.suit ?? index}`} card={card} />
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.opponentRow}>
+            {opponents.map((seat) => (
+              <OpponentSeat
+                key={seat.seat}
+                seat={seat}
+                name={nameForSeat(seat.seat)}
+                isTurn={!state.handOver && state.currentTurnSeat === seat.seat}
+                cards={state.street === "showdown" ? revealed[seat.seat] : undefined}
+              />
             ))}
-          </View>
+          </ScrollView>
 
-          <View style={styles.heroPanel}>
-            <Text style={styles.heroLabel}>Your hand · {mine.stack} practice chips</Text>
-            <View style={styles.heroCardsRow}>
-              {myHoleCards.map((card) => (
-                <PlayingCardDisplay key={`${card.rank}-${card.suit}`} card={card} />
+          <View style={styles.middle}>
+            <Text style={styles.potLabel}>POT</Text>
+            <Text style={styles.potValue}>{pot}</Text>
+            <View style={styles.community}>
+              {[0, 1, 2, 3, 4].map((index) => (
+                <CardSlot card={state.community[index]} key={index} />
               ))}
             </View>
+            <Text style={styles.message}>{state.message}</Text>
+          </View>
+
+          <View style={styles.myArea}>
+            <View style={styles.myCards}>
+              {myHoleCards.length ? (
+                myHoleCards.map((card, index) => <CardSlot card={card} key={index} />)
+              ) : (
+                <>
+                  <CardSlot hidden />
+                  <CardSlot hidden />
+                </>
+              )}
+            </View>
+            <View style={styles.myMeta}>
+              <Text style={styles.myName}>{nameForSeat(mySeat)}</Text>
+              <Text style={styles.myStack}>{me?.stack ?? 0} chips</Text>
+              {me?.status === "allin" ? <Text style={styles.opponentTag}>ALL IN</Text> : null}
+              {me?.status === "folded" ? <Text style={styles.opponentTag}>FOLDED</Text> : null}
+            </View>
+          </View>
+
+          <View style={[styles.actions, { paddingBottom: Math.max(insets.bottom, 16) }]}>
+            {state.handOver ? (
+              <Pressable
+                accessibilityLabel="Back to the lobby"
+                onPress={() => router.replace("/room-lobby")}
+                style={({ pressed }) => [styles.primaryButton, pressed && styles.buttonPressed]}
+              >
+                <Text style={styles.primaryText}>BACK TO LOBBY</Text>
+              </Pressable>
+            ) : (
+              <View style={styles.actionRow}>
+                <Pressable
+                  accessibilityLabel="Fold"
+                  disabled={!canAct}
+                  onPress={() => void act("fold")}
+                  style={({ pressed }) => [styles.actionButton, !canAct && styles.buttonDisabled, pressed && styles.buttonPressed]}
+                >
+                  <Text style={styles.actionText}>FOLD</Text>
+                </Pressable>
+                <Pressable
+                  accessibilityLabel={toCall > 0 ? `Call ${toCall}` : "Check"}
+                  disabled={!canAct}
+                  onPress={() => void act("call")}
+                  style={({ pressed }) => [styles.actionButton, !canAct && styles.buttonDisabled, pressed && styles.buttonPressed]}
+                >
+                  <Text style={styles.actionText}>{toCall > 0 ? `CALL ${toCall}` : "CHECK"}</Text>
+                </Pressable>
+                <Pressable
+                  accessibilityLabel="Raise"
+                  disabled={!canAct}
+                  onPress={() => void act("raise")}
+                  style={({ pressed }) => [styles.actionButtonPrimary, !canAct && styles.buttonDisabled, pressed && styles.buttonPressed]}
+                >
+                  <Text style={styles.actionPrimaryText}>
+                    {state.currentBet === 0 ? "BET" : `RAISE ${Math.max(state.minRaise, state.bigBlind)}`}
+                  </Text>
+                </Pressable>
+              </View>
+            )}
+            {!state.handOver && !myTurn ? (
+              <Text style={styles.turnNote}>Waiting for {nameForSeat(state.currentTurnSeat)}...</Text>
+            ) : null}
           </View>
         </LinearGradient>
-
-        {state.handOver ? (
-          <View style={styles.coachCard}>
-            <Text style={styles.resultText}>{resultLabel}</Text>
-            <Text style={styles.coachMeta}>{state.message}</Text>
-          </View>
-        ) : (
-          <View style={styles.actionRow}>
-            <Pressable disabled={!myTurn || acting} onPress={() => handleAction("fold")} style={({ pressed }) => [styles.actionButton, styles.foldButton, (!myTurn || acting) && styles.disabledButton, pressed && styles.pressed]}>
-              <Text style={styles.actionText}>Fold</Text>
-            </Pressable>
-            <Pressable disabled={!myTurn || acting} onPress={() => handleAction("call")} style={({ pressed }) => [styles.actionButton, styles.callButton, (!myTurn || acting) && styles.disabledButton, pressed && styles.pressed]}>
-              <Text style={[styles.actionText, styles.callText]}>{callLabel}</Text>
-            </Pressable>
-            <Pressable disabled={!myTurn || acting} onPress={() => handleAction("raise")} style={({ pressed }) => [styles.actionButton, styles.raiseButton, (!myTurn || acting) && styles.disabledButton, pressed && styles.pressed]}>
-              <Text style={styles.raiseText}>Raise 60</Text>
-            </Pressable>
-          </View>
-        )}
-
-        <View style={styles.coachCard}>
-          <Text style={styles.coachMeta}>{myTurn ? "Your turn." : state.handOver ? "Hand complete." : `Waiting on ${meta.opponentName}...`}</Text>
-          <Text style={styles.coachMeta}>{state.message}</Text>
-        </View>
-      </LinearGradient>
-    </ScreenContainer>
+      </SafeAreaView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  screen: { width: "100%", maxWidth: 430, minHeight: 900, alignSelf: "center", paddingHorizontal: 22, paddingTop: 26, paddingBottom: 112 },
-  header: { flexDirection: "row", alignItems: "center", justifyContent: "space-between" },
-  eyebrow: { color: colors.muted, fontFamily: fonts.bold, fontSize: 12, lineHeight: 16, fontWeight: "800" },
-  title: { color: colors.text, fontFamily: fonts.heading, marginTop: 2, fontSize: 28, lineHeight: 34, fontWeight: "900" },
-  tableCard: { marginTop: spacing.lg, borderRadius: radii.xl, padding: spacing.md, borderColor: colors.border, borderWidth: 1 },
-  tableTop: { flexDirection: "row", alignItems: "center", justifyContent: "space-between" },
-  street: { color: colors.text, fontSize: 20, lineHeight: 25, fontWeight: "900" },
-  potPill: { minWidth: 82, minHeight: 44, borderRadius: radii.pill, alignItems: "center", justifyContent: "center", backgroundColor: "rgba(255,255,255,0.08)", borderColor: colors.border, borderWidth: 1 },
-  potLabel: { color: colors.muted, fontSize: 10, lineHeight: 12, fontWeight: "800" },
-  potValue: { color: colors.text, fontSize: 16, lineHeight: 20, fontWeight: "900" },
-  opponentRow: { marginTop: spacing.lg, flexDirection: "row", alignItems: "center" },
-  aiAvatar: { width: 46, height: 46, borderRadius: 23, alignItems: "center", justifyContent: "center", backgroundColor: "rgba(214,165,54,0.11)", borderColor: "rgba(214,165,54,0.24)", borderWidth: 1 },
-  opponentCopy: { flex: 1, minWidth: 0, marginLeft: spacing.sm },
-  opponentName: { color: colors.text, fontSize: 15, lineHeight: 19, fontWeight: "900" },
-  opponentMeta: { color: colors.muted, marginTop: 2, fontSize: 11, lineHeight: 14, fontWeight: "700" },
-  hiddenHand: { flexDirection: "row", gap: spacing.xs },
-  boardRow: { minHeight: 86, marginTop: spacing.lg, flexDirection: "row", justifyContent: "center", gap: spacing.xs },
-  cardBack: { width: 54, height: 76, borderRadius: 12, alignItems: "center", justifyContent: "center", backgroundColor: "rgba(255,255,255,0.055)", borderColor: "rgba(255,255,255,0.08)", borderWidth: 1 },
-  heroPanel: { marginTop: spacing.md, borderRadius: radii.lg, padding: spacing.md, backgroundColor: "rgba(2,4,7,0.62)", borderColor: colors.border, borderWidth: 1 },
-  heroLabel: { color: colors.muted, fontSize: 11, lineHeight: 14, fontWeight: "800" },
-  heroCardsRow: { flexDirection: "row", gap: spacing.sm, marginTop: spacing.sm },
-  actionRow: { flexDirection: "row", gap: spacing.xs, marginTop: spacing.md },
-  actionButton: { flex: 1, minHeight: 50, borderRadius: radii.pill, alignItems: "center", justifyContent: "center", borderWidth: 1 },
-  foldButton: { backgroundColor: "rgba(226,90,95,0.12)", borderColor: "rgba(226,90,95,0.22)" },
-  callButton: { backgroundColor: "rgba(255,255,255,0.92)", borderColor: "rgba(255,255,255,0.22)" },
-  raiseButton: { backgroundColor: colors.gold, borderColor: "rgba(214,165,54,0.42)" },
-  disabledButton: { opacity: 0.42 },
-  actionText: { color: colors.text, fontSize: 13, lineHeight: 17, fontWeight: "900" },
-  callText: { color: colors.ink },
-  raiseText: { color: colors.ink, fontSize: 13, lineHeight: 17, fontWeight: "900" },
-  coachCard: { marginTop: spacing.md, borderRadius: radii.lg, padding: spacing.md, backgroundColor: "rgba(255,255,255,0.055)", borderColor: colors.border, borderWidth: 1, gap: 4 },
-  resultText: { color: colors.gold, fontFamily: fonts.extraBold, fontSize: 16, lineHeight: 20, fontWeight: "900" },
-  coachMeta: { color: colors.muted, fontSize: 12, lineHeight: 17, fontWeight: "700" },
-  pressed: { opacity: 0.72, transform: [{ scale: 0.98 }] }
+  routeSurface: { flex: 1, backgroundColor: "#000000" },
+  safeArea: { flex: 1, width: "100%", maxWidth: 472, alignSelf: "center" },
+  felt: { flex: 1 },
+  topBar: {
+    minHeight: 58,
+    paddingBottom: 6,
+    paddingHorizontal: 20,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between"
+  },
+  iconButton: { width: 44, height: 44, alignItems: "flex-start", justifyContent: "center" },
+  street: {
+    color: "rgba(247,248,250,0.82)",
+    fontFamily: homeMediumFont,
+    fontSize: 13,
+    fontWeight: "600",
+    letterSpacing: 1
+  },
+  opponentRow: { paddingHorizontal: 16, gap: 10, paddingBottom: 4 },
+  opponent: {
+    width: 96,
+    alignItems: "center",
+    gap: 3,
+    paddingVertical: 10,
+    paddingHorizontal: 8,
+    borderRadius: 16,
+    backgroundColor: "rgba(255,255,255,0.055)"
+  },
+  opponentFolded: { opacity: 0.4 },
+  opponentTurn: { borderWidth: 1, borderColor: "rgba(247,248,250,0.42)" },
+  opponentName: { color: "#f7f8fa", fontFamily: homeFont, fontSize: 12 },
+  opponentStack: { color: "rgba(247,248,250,0.62)", fontFamily: homeMediumFont, fontSize: 13, fontWeight: "600" },
+  opponentBet: { color: "rgba(247,248,250,0.82)", fontFamily: homeFont, fontSize: 11 },
+  opponentTag: {
+    color: "rgba(247,248,250,0.48)",
+    fontFamily: homeMediumFont,
+    fontSize: 9,
+    fontWeight: "700",
+    letterSpacing: 1
+  },
+  opponentCards: { flexDirection: "row", gap: 3, marginTop: 4 },
+  middle: { flex: 1, alignItems: "center", justifyContent: "center", paddingHorizontal: 16 },
+  potLabel: {
+    color: "rgba(247,248,250,0.48)",
+    fontFamily: homeMediumFont,
+    fontSize: 10,
+    fontWeight: "700",
+    letterSpacing: 2
+  },
+  potValue: {
+    color: "#f7f8fa",
+    fontFamily: homeMediumFont,
+    fontSize: 30,
+    lineHeight: 36,
+    fontWeight: "700"
+  },
+  community: { flexDirection: "row", gap: 6, marginTop: 14 },
+  message: {
+    color: "rgba(247,248,250,0.58)",
+    fontFamily: homeFont,
+    fontSize: 13,
+    textAlign: "center",
+    marginTop: 16,
+    minHeight: 34
+  },
+  myArea: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 16,
+    paddingBottom: 10
+  },
+  myCards: { flexDirection: "row", gap: 6 },
+  myMeta: { alignItems: "flex-start" },
+  myName: { color: "#f7f8fa", fontFamily: homeMediumFont, fontSize: 15, fontWeight: "600" },
+  myStack: { color: "rgba(247,248,250,0.62)", fontFamily: homeFont, fontSize: 13, marginTop: 2 },
+  cardBack: {
+    width: 44,
+    height: 62,
+    borderRadius: 8,
+    backgroundColor: "rgba(255,255,255,0.06)",
+    borderWidth: 1,
+    borderColor: "rgba(255,255,255,0.10)"
+  },
+  cardBackSmall: { width: 24, height: 34, borderRadius: 5 },
+  cardSmall: { transform: [{ scale: 0.55 }], width: 26, height: 36 },
+  actions: { paddingHorizontal: 16, paddingTop: 6 },
+  actionRow: { flexDirection: "row", gap: 8 },
+  actionButton: {
+    flex: 1,
+    height: 52,
+    borderRadius: 16,
+    alignItems: "center",
+    justifyContent: "center",
+    borderWidth: 1,
+    borderColor: "rgba(255,255,255,0.14)"
+  },
+  actionButtonPrimary: {
+    flex: 1,
+    height: 52,
+    borderRadius: 16,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "#f7f8fa"
+  },
+  actionText: { color: "#f7f8fa", fontFamily: homeMediumFont, fontSize: 12, fontWeight: "700", letterSpacing: 1 },
+  actionPrimaryText: { color: "#0b0c0f", fontFamily: homeMediumFont, fontSize: 12, fontWeight: "700", letterSpacing: 1 },
+  primaryButton: {
+    height: 54,
+    borderRadius: 18,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "#f7f8fa"
+  },
+  primaryText: { color: "#0b0c0f", fontFamily: homeMediumFont, fontSize: 13, fontWeight: "700", letterSpacing: 1 },
+  buttonDisabled: { opacity: 0.34 },
+  buttonPressed: { opacity: 0.86 },
+  turnNote: {
+    color: "rgba(247,248,250,0.48)",
+    fontFamily: homeFont,
+    fontSize: 12,
+    textAlign: "center",
+    marginTop: 10
+  }
 });

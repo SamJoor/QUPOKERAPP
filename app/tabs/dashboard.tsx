@@ -59,10 +59,10 @@ const gameCards: GameCard[] = [
   {
     id: "create",
     title: "Custom Match",
-    subtitle: "Build a private club table",
-    accessibilityLabel: "Custom match coming soon",
-    gradient: ["#f1ddc4", "#d9e5f2"],
-    disabled: true
+    subtitle: "Play friends with a room code",
+    accessibilityLabel: "Open or join a custom table with a room code",
+    route: "/room-lobby",
+    gradient: ["#f1ddc4", "#d9e5f2"]
   }
 ];
 

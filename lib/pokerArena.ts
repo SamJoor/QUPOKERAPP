@@ -151,11 +151,13 @@ export async function getMyHoleCards(matchId: string): Promise<Card[]> {
   return (data ?? []) as Card[];
 }
 
-export async function getShowdownHoleCards(matchId: string): Promise<{ user_id: string; cards: Card[] }[]> {
+export async function getShowdownHoleCards(
+  matchId: string
+): Promise<{ user_id: string; seat: number; cards: Card[] }[]> {
   if (demoDataEnabled) return [];
   const { data, error } = await supabase.rpc("get_showdown_hole_cards", { p_match_id: matchId });
   if (error) throw error;
-  return (data ?? []) as { user_id: string; cards: Card[] }[];
+  return (data ?? []) as { user_id: string; seat: number; cards: Card[] }[];
 }
 
 export async function revealCommunityStreet(matchId: string, street: "flop" | "turn" | "river" | "showdown"): Promise<Record<string, unknown>> {

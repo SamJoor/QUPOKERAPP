@@ -148,8 +148,9 @@ export default function ProfileScreen() {
         })}
       </View>
       <View style={styles.stats}>
-        <StatCard label="Lifetime points" value={profile.lifetime_points ?? profile.total_points} tone="gold" />
-        <StatCard label="Spendable points" value={profile.spendable_points ?? profile.total_points} />
+        <StatCard label="Club points" value={profile.lifetime_points ?? profile.total_points} tone="gold" />
+        <StatCard label="Spendable" value={profile.spendable_points ?? 0} />
+        <StatCard label="Chips" value={profile.chips ?? 0} />
       </View>
       {editing ? (
         <View style={styles.form}>
