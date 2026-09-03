@@ -141,7 +141,12 @@ end;
 $$;
 
 -- The showdown reveal needs seats, not just user ids - the engine awards pots by seat.
-create or replace function public.get_showdown_hole_cards(p_match_id uuid)
+-- Adding a column changes the return type, which create or replace cannot do, so this has to
+-- be dropped first. 016 left it on the default PUBLIC execute grant; it is restricted to
+-- authenticated below to match the newer functions.
+drop function if exists public.get_showdown_hole_cards(uuid);
+
+create function public.get_showdown_hole_cards(p_match_id uuid)
 returns table(user_id uuid, seat int, cards jsonb)
 language plpgsql stable security definer set search_path = public as $$
 begin
@@ -158,6 +163,9 @@ begin
     order by mp.seat;
 end;
 $$;
+
+revoke all on function public.get_showdown_hole_cards(uuid) from public, anon;
+grant execute on function public.get_showdown_hole_cards(uuid) to authenticated;
 
 revoke all on function public.get_room_seats(uuid) from public, anon;
 revoke all on function public.deal_poker_table(uuid) from public, anon;
