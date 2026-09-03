@@ -559,12 +559,12 @@ export default function DashboardScreen() {
         </View>
 
         <Pressable
-          accessibilityLabel="See weekly leaderboard"
-          accessibilityHint="Opens a coming soon preview"
-          onPress={() => setComingSoonVisible(true)}
+          accessibilityLabel="See the full leaderboard"
+          accessibilityHint="Opens chips, club points and this week"
+          onPress={() => router.push("/tabs/leaderboard")}
           style={({ pressed }) => [styles.fullLeaderboardButton, { width: contentColumnWidth }, pressed && styles.fullLeaderboardButtonPressed]}
         >
-          <Text style={styles.fullLeaderboardText}>See weekly leaderboard</Text>
+          <Text style={styles.fullLeaderboardText}>See the full leaderboard</Text>
         </Pressable>
           </LinearGradient>
         </Animated.ScrollView>
