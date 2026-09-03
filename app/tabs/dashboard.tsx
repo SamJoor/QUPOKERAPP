@@ -647,7 +647,7 @@ export default function DashboardScreen() {
           <Text style={styles.clubPointsEyebrow}>CHIPS</Text>
           <Text style={styles.clubPointsPreviewValue}>{formatNumber(chipBalance)}</Text>
           <Text style={styles.clubPointsPreviewBody}>
-            What you play with at every table in the app. You start with 2,000 and can collect 500 more each day from the Dashboard. Chips are free, have no cash value, and cannot be purchased.
+            You start with 2,000 and can collect 500 more each day. Custom tables against friends are played for chips, so losing a hand costs you and winning one pays you. Offline Tables never touch your balance. Chips are free, have no cash value, and cannot be purchased.
           </Text>
           <View style={styles.clubPointsDivider} />
           <Text style={styles.clubPointsEyebrow}>CLUB POINTS</Text>

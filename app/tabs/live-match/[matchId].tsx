@@ -20,7 +20,7 @@ import {
   subscribeToPokerMatch,
   updatePokerMatchState
 } from "@/lib/pokerArena";
-import { dealPokerTable } from "@/lib/pokerRooms";
+import { dealPokerTable, settlePokerTable, stacksFromBuyIns } from "@/lib/pokerRooms";
 import {
   advanceStreet,
   createTableState,
@@ -115,6 +115,23 @@ export default function LiveMatchScreen() {
   // would both call deal_poker_table and the second would fail with "Hand already dealt".
   const dealingRef = useRef(false);
 
+  const settledRef = useRef(false);
+
+  const settleIfFinished = useCallback(
+    async (next: TableState) => {
+      if (!next.handOver || settledRef.current) return;
+      settledRef.current = true;
+      try {
+        await settlePokerTable(matchId);
+      } catch (err) {
+        // A refusal here means the result did not balance, which the player needs to know:
+        // their chips are still held against the table until it is settled.
+        setError(err instanceof Error ? err.message : "Could not settle the table.");
+      }
+    },
+    [matchId]
+  );
+
   const loadShowdown = useCallback(
     async (next: TableState) => {
       if (next.street !== "showdown") return;
@@ -136,7 +153,12 @@ export default function LiveMatchScreen() {
 
     async function openTable(row: PokerMatchWithPlayers, seated: number[]) {
       const dealt = await dealPokerTable(row.id);
-      const opening = createTableState(dealt.seats ?? seated, 20, 1000, dealt.button_seat);
+      const opening = createTableState(
+        dealt.seats ?? seated,
+        20,
+        stacksFromBuyIns(dealt.buy_ins),
+        dealt.button_seat
+      );
       const firstUser = row.players.find((player) => player.seat === opening.currentTurnSeat)?.user_id ?? null;
       await updatePokerMatchState(
         row.id,
@@ -190,6 +212,7 @@ export default function LiveMatchScreen() {
       setWaiting(false);
       setState(published);
       await loadShowdown(published);
+      await settleIfFinished(published);
     }
 
     async function bootstrap() {
@@ -242,10 +265,10 @@ export default function LiveMatchScreen() {
       if (pollHandle) clearInterval(pollHandle);
       unsubscribe();
     };
-    // myHoleCards is deliberately not a dependency - it would tear down the subscription on
+    // settleIfFinished and myHoleCards are deliberately not dependencies - it would tear down the subscription on
     // every deal. The closures read it only to decide whether to fetch once.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [matchId, loadShowdown]);
+  }, [matchId, loadShowdown, settleIfFinished]);
 
   const userIdForSeat = useCallback(
     (seat: number) => seatMeta.find((entry) => entry.seat === seat)?.user_id ?? null,
@@ -293,6 +316,7 @@ export default function LiveMatchScreen() {
 
         next = await settleIfRoundClosed(next);
         setState(next);
+        await settleIfFinished(next);
         await updatePokerMatchState(
           matchId,
           action,
@@ -306,7 +330,7 @@ export default function LiveMatchScreen() {
         setActing(false);
       }
     },
-    [acting, matchId, mySeat, settleIfRoundClosed, state, userIdForSeat]
+    [acting, matchId, mySeat, settleIfFinished, settleIfRoundClosed, state, userIdForSeat]
   );
 
   if (error) {

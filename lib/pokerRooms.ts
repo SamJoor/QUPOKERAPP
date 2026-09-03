@@ -42,10 +42,28 @@ export async function getRoomSeats(matchId: string): Promise<RoomSeat[]> {
   return (data ?? []) as RoomSeat[];
 }
 
-/** Host only. Returns the seat numbers dealt in and which seat holds the button, so the caller
- * can build the opening table state with createTableState(). */
-export async function dealPokerTable(matchId: string): Promise<{ button_seat: number; seats: number[] }> {
+/** Host only. Debits every player's buy-in and returns the seats, the button, and what each
+ * seat bought in for, so the caller can seat everyone with their own stack. */
+export async function dealPokerTable(
+  matchId: string
+): Promise<{ button_seat: number; seats: number[]; buy_ins: Record<string, number> }> {
   const { data, error } = await supabase.rpc("deal_poker_table", { p_match_id: matchId });
   if (error) throw error;
-  return data as { button_seat: number; seats: number[] };
+  return data as { button_seat: number; seats: number[]; buy_ins: Record<string, number> };
+}
+
+/**
+ * Returns each player's remaining stack to their chip balance. Safe for anyone at the table to
+ * call - the server settles once and tells the rest it is already done - so a client that dies
+ * before settling cannot strand everyone's chips.
+ */
+export async function settlePokerTable(matchId: string): Promise<{ status: string }> {
+  const { data, error } = await supabase.rpc("settle_poker_table", { p_match_id: matchId });
+  if (error) throw error;
+  return data as { status: string };
+}
+
+/** Seat-keyed stacks for createTableState, from the buy_ins the deal returned. */
+export function stacksFromBuyIns(buyIns: Record<string, number>): Record<number, number> {
+  return Object.fromEntries(Object.entries(buyIns ?? {}).map(([seat, amount]) => [Number(seat), amount]));
 }

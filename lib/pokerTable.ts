@@ -88,11 +88,15 @@ export function nextStreet(street: TableStreet): Exclude<TableStreet, "preflop">
  * Deals a hand. Blinds are posted by the two seats after the button, except heads-up where the
  * button posts the small blind and acts first preflop - the standard exception, and the reason
  * seat order cannot simply start at seat 1.
+ *
+ * `startingStacks` is either one stack for everyone or a per-seat map. Custom tables buy in from
+ * each player's real chip balance, which differs, so short stacks are normal - and a short stack
+ * is exactly what produces the side pots buildPots exists for.
  */
 export function createTableState(
   seatNumbers: number[],
   bigBlind = BIG_BLIND,
-  startingStack = STARTING_STACK,
+  startingStacks: number | Record<number, number> = STARTING_STACK,
   buttonSeat?: number
 ): TableState {
   const ordered = [...seatNumbers].sort((a, b) => a - b);
@@ -110,15 +114,19 @@ export function createTableState(
 
   const smallBlind = Math.floor(bigBlind / 2);
 
+  const stackFor = (seat: number) =>
+    typeof startingStacks === "number" ? startingStacks : (startingStacks[seat] ?? 0);
+
   const seats: TableSeat[] = ordered.map((seat) => {
+    const bank = stackFor(seat);
     const post = seat === bigBlindSeat ? bigBlind : seat === smallBlindSeat ? smallBlind : 0;
-    const paid = Math.min(post, startingStack);
+    const paid = Math.min(post, bank);
     return {
       seat,
       committed: paid,
       totalCommitted: paid,
-      stack: startingStack - paid,
-      status: paid >= startingStack ? "allin" : "active",
+      stack: bank - paid,
+      status: paid >= bank ? "allin" : "active",
       hasActed: false
     };
   });

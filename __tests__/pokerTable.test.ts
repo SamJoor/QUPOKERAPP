@@ -335,3 +335,32 @@ describe("resolveShowdown", () => {
     expect(paid).toBe(50 + 150 + 300 + 300 + 80);
   });
 });
+
+describe("per-seat starting stacks", () => {
+  it("seats each player with their own bank", () => {
+    const state = createTableState([1, 2, 3], 20, { 1: 1000, 2: 300, 3: 80 }, 1);
+    expect(seat(state, 1).stack).toBe(1000);
+    expect(seat(state, 2).stack).toBe(300 - 10);
+    expect(seat(state, 3).stack).toBe(80 - 20);
+  });
+
+  it("puts a player all in when the blind is their whole bank", () => {
+    const state = createTableState([1, 2, 3], 20, { 1: 1000, 2: 1000, 3: 20 }, 1);
+    expect(seat(state, 3).status).toBe("allin");
+    expect(seat(state, 3).stack).toBe(0);
+  });
+
+  it("produces a side pot when a short buy-in is covered", () => {
+    let state = createTableState([1, 2, 3], 20, { 1: 1000, 2: 1000, 3: 100 }, 1);
+    const before = chipsInPlay(state);
+    state = applyBetOrRaise(state, 1, 5000);
+    state = applyCheckOrCall(state, 2);
+    state = applyCheckOrCall(state, 3);
+    expect(seat(state, 3).status).toBe("allin");
+    const pots = buildPots(state);
+    expect(pots.length).toBeGreaterThan(1);
+    expect(pots[0].eligibleSeats).toContain(3);
+    expect(pots[pots.length - 1].eligibleSeats).not.toContain(3);
+    expect(chipsInPlay(state)).toBe(before);
+  });
+});

@@ -15,7 +15,8 @@ import {
   getMyOpenRoom,
   getRoomSeats,
   joinPokerRoom,
-  RoomSeat
+  RoomSeat,
+  stacksFromBuyIns
 } from "@/lib/pokerRooms";
 import { createTableState } from "@/lib/pokerTable";
 
@@ -111,7 +112,8 @@ export default function RoomLobbyScreen() {
       const dealt = await dealPokerTable(matchId);
       // The server owns the cards. Blind positions and who acts first are engine rules, so the
       // host builds the opening state and publishes it for everyone on the table.
-      const opening = createTableState(dealt.seats, 20, 1000, dealt.button_seat);
+      // Each player buys in from their own chip balance, so stacks differ at the table.
+      const opening = createTableState(dealt.seats, 20, stacksFromBuyIns(dealt.buy_ins), dealt.button_seat);
       const firstToAct = seats.find((seat) => seat.seat === opening.currentTurnSeat);
       await updatePokerMatchState(
         matchId,
@@ -183,8 +185,9 @@ export default function RoomLobbyScreen() {
             <Text style={styles.eyebrow}>CUSTOM TABLES</Text>
             <Text style={styles.title}>Play your friends.</Text>
             <Text style={styles.codeHint}>
-              Open a table and share the code, or type in one a friend sent you. Chips are play
-              money and have no cash value.
+              Open a table and share the code, or type in one a friend sent you. You buy in with
+              your own chips here, so what you lose at the table leaves your balance. Chips are
+              play money and have no cash value.
             </Text>
 
             <TextInput
