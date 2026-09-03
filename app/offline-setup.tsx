@@ -272,8 +272,8 @@ export default function OfflineSetupScreen() {
         style={[styles.routeSurface, { transform: [{ translateY: screenTranslateY }] }]}
       >
         <View style={styles.screenContent}>
-          <SafeAreaView edges={["top", "left", "right"]} style={styles.safeArea}>
-        <View style={styles.topBar}>
+          <SafeAreaView edges={["left", "right"]} style={styles.safeArea}>
+        <View style={[styles.topBar, { paddingTop: Math.max(insets.top, 12) }]}>
           <Pressable
             accessibilityLabel="Close table setup"
             hitSlop={10}
@@ -442,7 +442,8 @@ const styles = StyleSheet.create({
     backgroundColor: "#000000"
   },
   topBar: {
-    height: 58,
+    minHeight: 58,
+    paddingBottom: 6,
     paddingHorizontal: 20,
     flexDirection: "row",
     alignItems: "center",
